@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Monitoring Dashboard</title>
+    <meta name="description" content="Interactive Power BI-style monitoring dashboard for portfolio underwriting analysis">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-chart-line logo-icon"></i>
+            <span class="logo-text">Portfolio BI</span>
+        </div>
+
+        <div class="filter-section upload-section">
+            <label class="filter-label"><i class="fa-solid fa-cloud-arrow-up"></i> UPLOAD DATA (.xlsx)</label>
+            <input type="file" id="excelUpload" accept=".xlsx, .xls" class="file-input" />
+            <div id="uploadStatus" class="upload-status"></div>
+            <button id="downloadJsonBtn" class="download-json-btn" style="display:none;"><i class="fa-solid fa-download"></i> Save as JSON</button>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <div class="filter-section">
+            <label class="filter-label">ZONE</label>
+            <select id="zoneFilter" class="filter-select">
+                <option value="all">All Zones</option>
+            </select>
+        </div>
+        <div class="filter-section">
+            <label class="filter-label">REGION</label>
+            <select id="regionFilter" class="filter-select">
+                <option value="all">All Regions</option>
+            </select>
+        </div>
+        <div class="filter-section">
+            <label class="filter-label">TERRITORY</label>
+            <select id="territoryFilter" class="filter-select">
+                <option value="all">All Territories</option>
+            </select>
+        </div>
+        <div class="filter-section">
+            <label class="filter-label">UNIT / AREA</label>
+            <select id="unitFilter" class="filter-select">
+                <option value="all">All Units</option>
+            </select>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Ticket Size sub-filter (only visible in Ticket Size tab) -->
+        <div class="filter-section" id="ticketSizeFilterSection">
+            <label class="filter-label">TICKET SIZE</label>
+            <select id="ticketSizeFilter" class="filter-select">
+                <option value="both">Both Ticket Sizes</option>
+                <option value="below10">Below 10 Lacs</option>
+                <option value="ten20">10-20 Lacs</option>
+            </select>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- Drill-down level -->
+        <div class="filter-section">
+            <label class="filter-label">VIEW BY</label>
+            <select id="drillLevel" class="filter-select">
+                <option value="zone">Zone</option>
+                <option value="region">Region</option>
+                <option value="territory">Territory</option>
+                <option value="unit">Unit / Area</option>
+            </select>
+        </div>
+
+        <button class="reset-btn" id="resetFiltersBtn">
+            <i class="fa-solid fa-rotate-left"></i> Reset Filters
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div>
+                <h1 class="page-title" id="pageTitle">Portfolio Insights</h1>
+                <div class="breadcrumb" id="breadCrumb">Country Level</div>
+            </div>
+            <div class="header-controls">
+                <button id="themeToggle" class="theme-toggle-btn" title="Toggle Light/Dark Mode">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <div class="tabs" id="portfolioTabs">
+                    <div class="tab active" data-tab="overall">Overall Portfolio</div>
+                    <div class="tab" data-tab="l12m">Last 12 Months</div>
+                    <div class="tab" data-tab="ticket">Ticket Size Portfolio</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW (Visible for ticket and l12m tabs) -->
+        <div id="dashboardView">
+            <!-- KPI Cards -->
+            <section class="kpi-grid" id="kpiGrid">
+                <!-- Will be dynamically populated -->
+            </section>
+
+            <!-- Charts: 4 zone-wise charts -->
+            <section class="charts-grid" id="chartsGrid">
+                <div class="card chart-card" id="chartCardColVsCol">
+                    <div class="chart-header">
+                        <h3 class="card-title"><i class="fa-solid fa-chart-pie" style="color:var(--accent-blue)"></i> COLLECTION VS OUTSTANDING %</h3>
+                        <button class="expand-btn" onclick="openChartModal('colVsCol')"><i class="fa-solid fa-expand"></i></button>
+                    </div>
+                    <div id="chartColVsCol"></div>
+                </div>
+                <div class="card chart-card" id="chartCardEmiVsCol">
+                    <div class="chart-header">
+                        <h3 class="card-title"><i class="fa-solid fa-money-bill-trend-up" style="color:var(--accent-green)"></i> EMI %</h3>
+                        <button class="expand-btn" onclick="openChartModal('emiVsCol')"><i class="fa-solid fa-expand"></i></button>
+                    </div>
+                    <div id="chartEmiVsCol"></div>
+                </div>
+                <div class="card chart-card" id="chartCardNpl">
+                    <div class="chart-header">
+                        <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-red)"></i> NPL %</h3>
+                        <button class="expand-btn" onclick="openChartModal('npl')"><i class="fa-solid fa-expand"></i></button>
+                    </div>
+                    <div id="chartNpl"></div>
+                </div>
+                <div class="card chart-card" id="chartCardPar">
+                    <div class="chart-header">
+                        <h3 class="card-title"><i class="fa-solid fa-chart-line" style="color:var(--accent-amber)"></i> PAR %</h3>
+                        <button class="expand-btn" onclick="openChartModal('par')"><i class="fa-solid fa-expand"></i></button>
+                    </div>
+                    <div id="chartPar"></div>
+                </div>
+            </section>
+
+            <!-- Data Table -->
+            <section class="card table-card">
+                <div class="table-header-row">
+                    <h3 class="card-title" id="tableTitle">Breakdown by Zone</h3>
+                    <button class="export-btn" id="exportCsvBtn"><i class="fa-solid fa-file-excel"></i> Export Table</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="dataTable">
+                        <thead>
+                            <tr id="tableHeader">
+                                <!-- Dynamic -->
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+
+
+    </main>
+
+    <!-- FULLSCREEN CHART MODAL -->
+    <div class="modal-overlay" id="chartModal">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Chart View</h3>
+                <button class="close-modal" onclick="closeChartModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="modalChartContainer">
+                <div id="modalChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="realData.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

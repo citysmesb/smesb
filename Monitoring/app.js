@@ -64,7 +64,7 @@ function createBarChart(selector, title, color, isModal = false) {
         series: [{ name: title, data: [] }],
         theme: { mode: state.theme },
         chart: {
-            type: 'bar', height: isModal ? '100%' : 230,
+            type: 'bar', height: isModal ? '100%' : 280,
             background: state.theme === 'dark' ? '#1a1f2e' : '#ffffff',
             toolbar: { show: true, tools: { download: true } },
             zoom: { enabled: false }
@@ -72,8 +72,8 @@ function createBarChart(selector, title, color, isModal = false) {
         title: { text: null },
         colors: [color],
         plotOptions: { bar: { borderRadius: 4, dataLabels: { position: 'top' } } },
-        dataLabels: { enabled: true, formatter: function (val) { return val.toFixed(1) + "%"; }, offsetY: -20, style: { fontSize: '10px', colors: ["#fff"] } },
-        xaxis: { categories: [], labels: { style: { colors: state.theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#334155', fontSize: '10px' }, rotate: -45, trim: false, hideOverlappingLabels: false } },
+        dataLabels: { enabled: true, formatter: function (val) { return val.toFixed(1) + "%"; }, offsetY: -20, style: { fontSize: '10px', colors: [state.theme === 'dark' ? '#fff' : '#1e293b'] } },
+        xaxis: { categories: [], labels: { style: { colors: state.theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#334155', fontSize: '9px' }, rotate: -45, rotateAlways: true, trim: true, hideOverlappingLabels: true, maxHeight: 120 } },
         yaxis: { labels: { formatter: function (val) { return val.toFixed(1) + "%"; }, style: { colors: state.theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#334155' } } },
         grid: { borderColor: state.theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e2e8f0', strokeDashArray: 4 },
         tooltip: { theme: state.theme, y: { formatter: function (val) { return val.toFixed(2) + "%"; } } }
@@ -280,8 +280,8 @@ DOM.excelUpload.addEventListener('change', (e) => {
 });
 
 DOM.downloadJsonBtn.addEventListener('click', () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({unitData, countryAvg}, null, 2));
-    const dlAnchorElem = document.createElement('a'); dlAnchorElem.setAttribute("href", dataStr); dlAnchorElem.setAttribute("download", "realData.json"); dlAnchorElem.click();
+    const dataStr = "data:text/javascript;charset=utf-8," + encodeURIComponent("const dashboardData = " + JSON.stringify({unitData, countryAvg, subtotals}, null, 2) + ";");
+    const dlAnchorElem = document.createElement('a'); dlAnchorElem.setAttribute("href", dataStr); dlAnchorElem.setAttribute("download", "realData.js"); dlAnchorElem.click();
 });
 
 // ============================================
@@ -315,8 +315,9 @@ function getFilteredUnits() {
 function getUniqueValues(data, key) { return [...new Set(data.map(item => item[key]))].sort(); }
 function getMetricKey() {
     if (state.tab === 'l12m') return 'l12m';
-    if (state.tab === 'overall') return 'overall';
-    return state.ticketSize === 'ten20' ? 'ten20' : 'below10';
+    if (state.tab === 'overall' || state.tab === 'analysis') return 'overall';
+    if (state.ticketSize === 'both') return 'both';
+    return state.ticketSize;
 }
 
 function aggregateMetrics(units, metricKey) {
@@ -324,8 +325,8 @@ function aggregateMetrics(units, metricKey) {
     let t = { collectable: 0, collection: 0, emi: 0, portfolio: 0, npl: 0, par: 0 };
     units.forEach(u => {
         let val = null;
-        const m = u.metrics || u; // Support both nested (parsed from Excel) and flat (legacy) structures
-        if (state.tab === 'ticket' && state.ticketSize === 'both') {
+        const m = u.metrics || u; 
+        if (metricKey === 'both') {
             const b10 = m.below10 || m['below10'];
             const t20 = m.ten20 || m['ten20'];
             if (b10 && t20) {
@@ -410,6 +411,134 @@ window.sortTable = function(col) {
     updateDashboard();
 }
 
+window.goUpward = function() {
+    if (state.drillLevel === 'unit') { 
+        state.drillLevel = 'territory'; 
+        state.filters.territory = 'all';
+        state.filters.unit = 'all'; 
+    }
+    else if (state.drillLevel === 'territory') { 
+        state.drillLevel = 'region'; 
+        state.filters.region = 'all';
+        state.filters.territory = 'all'; 
+        state.filters.unit = 'all'; 
+    }
+    else if (state.drillLevel === 'region') { 
+        state.drillLevel = 'zone'; 
+        state.filters.zone = 'all';
+        state.filters.region = 'all'; 
+        state.filters.territory = 'all'; 
+        state.filters.unit = 'all'; 
+    }
+    DOM.drillLevel.value = state.drillLevel;
+    populateDropdowns(); updateBreadcrumb(); updateDashboard();
+}
+
+let currentInsightTarget = null;
+let currentInsightLevel = null;
+let currentInsightMetricType = 'nplPct';
+
+window.openInsightModal = function(name, level) {
+    currentInsightTarget = name;
+    currentInsightLevel = level;
+    currentInsightMetricType = 'nplPct';
+    document.getElementById('insightModal').classList.add('active');
+    renderInsightTimeline();
+}
+
+window.renderInsightTimeline = function(overrideMetric) {
+    if (overrideMetric) currentInsightMetricType = overrideMetric;
+    
+    let name = currentInsightTarget;
+    let level = currentInsightLevel;
+    let baseMetricKey = getMetricKey();
+    if (baseMetricKey === 'both') baseMetricKey = 'below10'; // Default to Below 10 Lacs for Modal if 'both' is selected
+    
+    let cAvg = countryAvg[baseMetricKey] || {nplPct: 0, parPct: 0, colVsCol: 0, emiVsCol: 0};
+    
+    let targetData = getFilteredUnits().filter(u => u[level] === name);
+    let targetAgg = aggregateMetrics(targetData, baseMetricKey);
+    
+    if (subtotals[name] && subtotals[name][baseMetricKey]) {
+        let exact = subtotals[name][baseMetricKey];
+        if (exact.colVsCol > 0 || exact.nplPct > 0 || exact.parPct > 0) {
+            targetAgg.colVsCol = exact.colVsCol;
+            targetAgg.emiVsCol = exact.emiVsCol;
+            targetAgg.nplPct = exact.nplPct;
+            targetAgg.parPct = exact.parPct;
+        }
+    }
+    
+    const levelLabels = { zone: 'Zone', region: 'Region', territory: 'Territory', unit: 'Unit' };
+    
+    const mConfig = {
+        colVsCol: { title: 'Collection vs Outstanding', color: 'var(--accent-blue)', higherBetter: true },
+        emiVsCol: { title: 'EMI', color: 'var(--accent-green)', higherBetter: true },
+        nplPct: { title: 'NPL', color: 'var(--accent-red)', higherBetter: false },
+        parPct: { title: 'PAR', color: 'var(--accent-amber)', higherBetter: false }
+    };
+    let mc = mConfig[currentInsightMetricType];
+    
+    let tabsHtml = `<div class="insight-tabs">
+        ${Object.keys(mConfig).map(k => `<button class="insight-tab ${k === currentInsightMetricType ? 'active' : ''}" onclick="renderInsightTimeline('${k}')">${mConfig[k].title} %</button>`).join('')}
+    </div>`;
+    
+    let html = tabsHtml + `<div class="timeline-container"><div class="timeline-center-line"></div>`;
+    
+    html += `<div class="timeline-node center-node"><div class="node-content">
+        <div class="node-title">Country Average</div>
+        <div class="node-value" style="color:${mc.color}">${mc.title}: ${cAvg[currentInsightMetricType].toFixed(2)}%</div>
+    </div></div>`;
+    
+    html += `<div class="timeline-node center-node target-node"><div class="node-content" style="border-color:var(--accent-purple); background:rgba(168, 85, 247, 0.1);">
+        <div class="node-title">${name} (${levelLabels[level] || level})</div>
+        <div class="node-value" style="color:var(--accent-purple)">${mc.title}: ${targetAgg[currentInsightMetricType].toFixed(2)}%</div>
+    </div></div>`;
+    
+    const renderNodes = (arr, label) => {
+        if(!arr.length) return '';
+        let res = `<div class="timeline-label-divider"><span>${label} Breakdown</span></div>`;
+        arr.sort((a,b) => b[currentInsightMetricType] - a[currentInsightMetricType]);
+        arr.forEach(child => {
+            let val = child[currentInsightMetricType];
+            let avgVal = cAvg[currentInsightMetricType];
+            let isGood = mc.higherBetter ? (val >= avgVal) : (val <= avgVal);
+            let isLeft = val < avgVal;
+            
+            let sideClass = isLeft ? 'left-node' : 'right-node';
+            let qualityClass = isGood ? 'good-node' : 'bad-node';
+            let colorClass = isGood ? 'good-val' : 'bad-val';
+            
+            res += `<div class="timeline-node ${sideClass} ${qualityClass}">
+                <div class="node-content">
+                    <div class="node-title">${child.name}</div>
+                    <div class="node-value ${colorClass}">${mc.title}: ${val.toFixed(2)}%</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted);">${isGood ? 'Better than Avg' : 'Worse than Avg'}</div>
+                </div>
+            </div>`;
+        });
+        return res;
+    };
+    
+    if (level === 'zone') {
+        html += renderNodes(getGroupedData(targetData, 'region', baseMetricKey), 'Region');
+        html += renderNodes(getGroupedData(targetData, 'territory', baseMetricKey), 'Territory');
+        html += renderNodes(getGroupedData(targetData, 'unit', baseMetricKey), 'Unit');
+    } else if (level === 'region') {
+        html += renderNodes(getGroupedData(targetData, 'territory', baseMetricKey), 'Territory');
+        html += renderNodes(getGroupedData(targetData, 'unit', baseMetricKey), 'Unit');
+    } else if (level === 'territory') {
+        html += renderNodes(getGroupedData(targetData, 'unit', baseMetricKey), 'Unit');
+    }
+    
+    html += `</div>`;
+    document.getElementById('insightTimelineContainer').innerHTML = html;
+}
+
+window.closeInsightModal = function() {
+    document.getElementById('insightModal').classList.remove('active');
+}
+
 function renderKPIs(filteredUnits) {
     const grid = DOM.kpiGrid; grid.innerHTML = '';
     if(!unitData.length || !countryAvg) return;
@@ -476,50 +605,43 @@ function updateCharts(filteredUnits) {
         const gB10 = getGroupedData(filteredUnits, level, 'below10'); const gT20 = getGroupedData(filteredUnits, level, 'ten20');
         const aB10 = countryAvg.below10||{colVsCol:0, emiVsCol:0, nplPct:0, parPct:0}; const aT20 = countryAvg.ten20||{colVsCol:0, emiVsCol:0, nplPct:0, parPct:0};
         
-        charts.colVsCol.updateOptions(getChartOptions(labels, aB10.colVsCol, '#818cf8', Math.max(getMax(gB10, aB10, 'colVsCol'), getMax(gT20, aT20, 'colVsCol'))));
-        charts.colVsCol.updateSeries([{ name: 'Below 10 Lacs', data: gB10.map(g => g.colVsCol) }, { name: '10-20 Lacs', data: gT20.map(g => g.colVsCol) }]);
-        
-        charts.emiVsCol.updateOptions(getChartOptions(labels, aB10.emiVsCol, '#22d3ee', Math.max(getMax(gB10, aB10, 'emiVsCol'), getMax(gT20, aT20, 'emiVsCol'))));
-        charts.emiVsCol.updateSeries([{ name: 'Below 10 Lacs', data: gB10.map(g => g.emiVsCol) }, { name: '10-20 Lacs', data: gT20.map(g => g.emiVsCol) }]);
-        
-        charts.npl.updateOptions(getChartOptions(labels, aB10.nplPct, '#f87171', Math.max(getMax(gB10, aB10, 'nplPct'), getMax(gT20, aT20, 'nplPct'))));
-        charts.npl.updateSeries([{ name: 'Below 10 Lacs', data: gB10.map(g => g.nplPct) }, { name: '10-20 Lacs', data: gT20.map(g => g.nplPct) }]);
-        
-        charts.par.updateOptions(getChartOptions(labels, aB10.parPct, '#fbbf24', Math.max(getMax(gB10, aB10, 'parPct'), getMax(gT20, aT20, 'parPct'))));
-        charts.par.updateSeries([{ name: 'Below 10 Lacs', data: gB10.map(g => g.parPct) }, { name: '10-20 Lacs', data: gT20.map(g => g.parPct) }]);
+        charts.colVsCol.updateOptions({ ...getChartOptions(labels, aB10.colVsCol, '#818cf8', Math.max(getMax(gB10, aB10, 'colVsCol'), getMax(gT20, aT20, 'colVsCol'))), series: [{ name: 'Below 10 Lacs', data: gB10.map(g => g.colVsCol) }, { name: '10-20 Lacs', data: gT20.map(g => g.colVsCol) }] }, false, true, true);
+        charts.emiVsCol.updateOptions({ ...getChartOptions(labels, aB10.emiVsCol, '#22d3ee', Math.max(getMax(gB10, aB10, 'emiVsCol'), getMax(gT20, aT20, 'emiVsCol'))), series: [{ name: 'Below 10 Lacs', data: gB10.map(g => g.emiVsCol) }, { name: '10-20 Lacs', data: gT20.map(g => g.emiVsCol) }] }, false, true, true);
+        charts.npl.updateOptions({ ...getChartOptions(labels, aB10.nplPct, '#f87171', Math.max(getMax(gB10, aB10, 'nplPct'), getMax(gT20, aT20, 'nplPct'))), series: [{ name: 'Below 10 Lacs', data: gB10.map(g => g.nplPct) }, { name: '10-20 Lacs', data: gT20.map(g => g.nplPct) }] }, false, true, true);
+        charts.par.updateOptions({ ...getChartOptions(labels, aB10.parPct, '#fbbf24', Math.max(getMax(gB10, aB10, 'parPct'), getMax(gT20, aT20, 'parPct'))), series: [{ name: 'Below 10 Lacs', data: gB10.map(g => g.parPct) }, { name: '10-20 Lacs', data: gT20.map(g => g.parPct) }] }, false, true, true);
     } else {
         const metricKey = getMetricKey(); const grouped = getGroupedData(filteredUnits, level, metricKey); const avg = countryAvg[metricKey]||{colVsCol:0, emiVsCol:0, nplPct:0, parPct:0};
         const activeLabels = grouped.map(g => g.name);
         
-        charts.colVsCol.updateOptions(getChartOptions(activeLabels, avg.colVsCol, '#6366f1', getMax(grouped, avg, 'colVsCol')));
-        charts.colVsCol.updateSeries([{ name: 'Collection vs Outstanding %', data: grouped.map(g => g.colVsCol) }]);
-        
-        charts.emiVsCol.updateOptions(getChartOptions(activeLabels, avg.emiVsCol, '#06b6d4', getMax(grouped, avg, 'emiVsCol')));
-        charts.emiVsCol.updateSeries([{ name: 'EMI %', data: grouped.map(g => g.emiVsCol) }]);
-        
-        charts.npl.updateOptions(getChartOptions(activeLabels, avg.nplPct, '#ef4444', getMax(grouped, avg, 'nplPct')));
-        charts.npl.updateSeries([{ name: 'NPL %', data: grouped.map(g => g.nplPct) }]);
-        
-        charts.par.updateOptions(getChartOptions(activeLabels, avg.parPct, '#f59e0b', getMax(grouped, avg, 'parPct')));
-        charts.par.updateSeries([{ name: 'PAR %', data: grouped.map(g => g.parPct) }]);
+        charts.colVsCol.updateOptions({ ...getChartOptions(activeLabels, avg.colVsCol, '#6366f1', getMax(grouped, avg, 'colVsCol')), series: [{ name: 'Collection vs Outstanding %', data: grouped.map(g => g.colVsCol) }] }, false, true, true);
+        charts.emiVsCol.updateOptions({ ...getChartOptions(activeLabels, avg.emiVsCol, '#06b6d4', getMax(grouped, avg, 'emiVsCol')), series: [{ name: 'EMI %', data: grouped.map(g => g.emiVsCol) }] }, false, true, true);
+        charts.npl.updateOptions({ ...getChartOptions(activeLabels, avg.nplPct, '#ef4444', getMax(grouped, avg, 'nplPct')), series: [{ name: 'NPL %', data: grouped.map(g => g.nplPct) }] }, false, true, true);
+        charts.par.updateOptions({ ...getChartOptions(activeLabels, avg.parPct, '#f59e0b', getMax(grouped, avg, 'parPct')), series: [{ name: 'PAR %', data: grouped.map(g => g.parPct) }] }, false, true, true);
     }
 }
 
 function updateTable(filteredUnits) {
     if(!unitData.length || !countryAvg) return;
     const metricKey = getMetricKey(); const level = state.drillLevel; const levelLabels = { zone: 'Zone', region: 'Region', territory: 'Territory', unit: 'Unit / Area' };
-    DOM.tableTitle.textContent = `Breakdown by ${levelLabels[level]}`;
+    const upLevels = { unit: 'territory', territory: 'region', region: 'zone', zone: null };
+    
+    let backBtnHTML = '';
+    if (state.drillLevel !== 'zone') {
+        backBtnHTML = `<button class="btn-back" onclick="goUpward()"><i class="fa-solid fa-arrow-left"></i> Back to ${levelLabels[upLevels[state.drillLevel]]}</button>`;
+    }
+    DOM.tableTitle.innerHTML = `Breakdown by ${levelLabels[level]} ${backBtnHTML}`;
+    
     if (state.tab === 'ticket' && state.ticketSize === 'both') {
         let groupedB10 = getGroupedData(filteredUnits, level, 'below10'); let groupedT20 = getGroupedData(filteredUnits, level, 'ten20');
         const avgB10 = countryAvg.below10||{colVsCol:0, emiVsCol:0, nplPct:0, parPct:0}; const avgT20 = countryAvg.ten20||{colVsCol:0, emiVsCol:0, nplPct:0, parPct:0};
         const t20Map = {}; groupedT20.forEach(g => t20Map[g.name] = g);
 
-        DOM.tableHeader.innerHTML = `<th rowspan="2" class="border-right sortable" onclick="sortTable('name')">${levelLabels[level]} ${sortIcon('name')}</th><th colspan="4" class="border-right" style="text-align:center;color:var(--accent-blue);border-bottom:2px solid var(--accent-blue)">Below 10 Lacs</th><th colspan="4" style="text-align:center;color:var(--accent-purple);border-bottom:2px solid var(--accent-purple)">10-20 Lacs</th>`;
+        DOM.tableHeader.innerHTML = `<th rowspan="2" class="border-right sortable" onclick="sortTable('name')">${levelLabels[level]} ${sortIcon('name')}</th><th colspan="4" class="border-right" style="text-align:center;color:var(--accent-blue);border-bottom:2px solid var(--accent-blue)">Below 10 Lacs</th><th colspan="4" class="border-right" style="text-align:center;color:var(--accent-purple);border-bottom:2px solid var(--accent-purple)">10-20 Lacs</th><th rowspan="2">Action</th>`;
         let subRow = DOM.tableHeader.parentElement.querySelector('.sub-header-row'); if (!subRow) { subRow = document.createElement('tr'); subRow.className = 'sub-header-row'; DOM.tableHeader.parentElement.appendChild(subRow); }
-        subRow.innerHTML = `<th class="sortable" onclick="sortTable('b10_colVsCol')">Collection vs Outstanding ${sortIcon('b10_colVsCol')}</th><th class="sortable" onclick="sortTable('b10_emiVsCol')">EMI % ${sortIcon('b10_emiVsCol')}</th><th class="sortable" onclick="sortTable('b10_nplPct')">NPL % ${sortIcon('b10_nplPct')}</th><th class="border-right sortable" onclick="sortTable('b10_parPct')">PAR % ${sortIcon('b10_parPct')}</th><th class="sortable" onclick="sortTable('t20_colVsCol')">Collection vs Outstanding ${sortIcon('t20_colVsCol')}</th><th class="sortable" onclick="sortTable('t20_emiVsCol')">EMI % ${sortIcon('t20_emiVsCol')}</th><th class="sortable" onclick="sortTable('t20_nplPct')">NPL % ${sortIcon('t20_nplPct')}</th><th class="sortable" onclick="sortTable('t20_parPct')">PAR % ${sortIcon('t20_parPct')}</th>`;
+        subRow.innerHTML = `<th class="sortable" onclick="sortTable('b10_colVsCol')">Collection vs Outstanding ${sortIcon('b10_colVsCol')}</th><th class="sortable" onclick="sortTable('b10_emiVsCol')">EMI % ${sortIcon('b10_emiVsCol')}</th><th class="sortable" onclick="sortTable('b10_nplPct')">NPL % ${sortIcon('b10_nplPct')}</th><th class="border-right sortable" onclick="sortTable('b10_parPct')">PAR % ${sortIcon('b10_parPct')}</th><th class="sortable" onclick="sortTable('t20_colVsCol')">Collection vs Outstanding ${sortIcon('t20_colVsCol')}</th><th class="sortable" onclick="sortTable('t20_emiVsCol')">EMI % ${sortIcon('t20_emiVsCol')}</th><th class="sortable" onclick="sortTable('t20_nplPct')">NPL % ${sortIcon('t20_nplPct')}</th><th class="border-right sortable" onclick="sortTable('t20_parPct')">PAR % ${sortIcon('t20_parPct')}</th>`;
         DOM.tableBody.innerHTML = '';
         const avgRow = document.createElement('tr'); avgRow.className = 'row-avg';
-        avgRow.innerHTML = `<td class="border-right">Total Small Business</td><td>${avgB10.colVsCol.toFixed(2)}%</td><td>${avgB10.emiVsCol.toFixed(2)}%</td><td>${avgB10.nplPct.toFixed(2)}%</td><td class="border-right">${avgB10.parPct.toFixed(2)}%</td><td>${avgT20.colVsCol.toFixed(2)}%</td><td>${avgT20.emiVsCol.toFixed(2)}%</td><td>${avgT20.nplPct.toFixed(2)}%</td><td>${avgT20.parPct.toFixed(2)}%</td>`;
+        avgRow.innerHTML = `<td class="border-right">Total Small Business</td><td>${avgB10.colVsCol.toFixed(2)}%</td><td>${avgB10.emiVsCol.toFixed(2)}%</td><td>${avgB10.nplPct.toFixed(2)}%</td><td class="border-right">${avgB10.parPct.toFixed(2)}%</td><td>${avgT20.colVsCol.toFixed(2)}%</td><td>${avgT20.emiVsCol.toFixed(2)}%</td><td>${avgT20.nplPct.toFixed(2)}%</td><td class="border-right">${avgT20.parPct.toFixed(2)}%</td><td class="action-cell">-</td>`;
         DOM.tableBody.appendChild(avgRow);
         
         if (state.sortCol) {
@@ -537,15 +659,15 @@ function updateTable(filteredUnits) {
         groupedB10.forEach(b10Row => {
             const t20Row = t20Map[b10Row.name] || { colVsCol: 0, emiVsCol: 0, nplPct: 0, parPct: 0 };
             const tr = document.createElement('tr'); tr.className = level !== 'unit' ? 'clickable-row' : '';
-            tr.innerHTML = `<td class="cell-name border-right">${b10Row.name}${level !== 'unit' ? ' <i class="fa-solid fa-chevron-right"></i>' : ''}</td><td class="${cellClass(b10Row.colVsCol, avgB10.colVsCol, true)}">${b10Row.colVsCol.toFixed(2)}%</td><td class="${cellClass(b10Row.emiVsCol, avgB10.emiVsCol, true)}">${b10Row.emiVsCol.toFixed(2)}%</td><td class="${cellClass(b10Row.nplPct, avgB10.nplPct, false)}">${b10Row.nplPct.toFixed(2)}%</td><td class="${cellClass(b10Row.parPct, avgB10.parPct, false)} border-right">${b10Row.parPct.toFixed(2)}%</td><td class="${cellClass(t20Row.colVsCol, avgT20.colVsCol, true)}">${t20Row.colVsCol.toFixed(2)}%</td><td class="${cellClass(t20Row.emiVsCol, avgT20.emiVsCol, true)}">${t20Row.emiVsCol.toFixed(2)}%</td><td class="${cellClass(t20Row.nplPct, avgT20.nplPct, false)}">${t20Row.nplPct.toFixed(2)}%</td><td class="${cellClass(t20Row.parPct, avgT20.parPct, false)}">${t20Row.parPct.toFixed(2)}%</td>`;
-            if (level !== 'unit') { tr.onclick = () => handleTableRowClick(b10Row.name); } DOM.tableBody.appendChild(tr);
+            tr.innerHTML = `<td class="cell-name border-right" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${b10Row.name}${level !== 'unit' ? ' <i class="fa-solid fa-chevron-right"></i>' : ''}</td><td class="${cellClass(b10Row.colVsCol, avgB10.colVsCol, true)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${b10Row.colVsCol.toFixed(2)}%</td><td class="${cellClass(b10Row.emiVsCol, avgB10.emiVsCol, true)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${b10Row.emiVsCol.toFixed(2)}%</td><td class="${cellClass(b10Row.nplPct, avgB10.nplPct, false)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${b10Row.nplPct.toFixed(2)}%</td><td class="${cellClass(b10Row.parPct, avgB10.parPct, false)} border-right" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${b10Row.parPct.toFixed(2)}%</td><td class="${cellClass(t20Row.colVsCol, avgT20.colVsCol, true)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${t20Row.colVsCol.toFixed(2)}%</td><td class="${cellClass(t20Row.emiVsCol, avgT20.emiVsCol, true)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${t20Row.emiVsCol.toFixed(2)}%</td><td class="${cellClass(t20Row.nplPct, avgT20.nplPct, false)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${t20Row.nplPct.toFixed(2)}%</td><td class="${cellClass(t20Row.parPct, avgT20.parPct, false)} border-right" onclick="if('${level}' !== 'unit') handleTableRowClick('${b10Row.name}')">${t20Row.parPct.toFixed(2)}%</td><td class="action-cell"><button class="btn-insight" onclick="event.stopPropagation(); openInsightModal('${b10Row.name}', '${level}')"><i class="fa-solid fa-eye"></i> View</button></td>`;
+            DOM.tableBody.appendChild(tr);
         });
     } else {
         let grouped = getGroupedData(filteredUnits, level, metricKey); const avg = countryAvg[metricKey]||{colVsCol:0, emiVsCol:0, nplPct:0, parPct:0};
         const subRow = DOM.tableHeader.parentElement.querySelector('.sub-header-row'); if (subRow) subRow.remove();
-        DOM.tableHeader.innerHTML = ` <th class="border-right sortable" onclick="sortTable('name')">${levelLabels[level]} ${sortIcon('name')}</th> <th class="sortable" onclick="sortTable('colVsCol')">Collection vs Outstanding ${sortIcon('colVsCol')}</th> <th class="sortable" onclick="sortTable('emiVsCol')">EMI % ${sortIcon('emiVsCol')}</th> <th class="sortable" onclick="sortTable('nplPct')">NPL % ${sortIcon('nplPct')}</th> <th class="sortable" onclick="sortTable('parPct')">PAR % ${sortIcon('parPct')}</th> `; DOM.tableBody.innerHTML = '';
+        DOM.tableHeader.innerHTML = ` <th class="border-right sortable" onclick="sortTable('name')">${levelLabels[level]} ${sortIcon('name')}</th> <th class="sortable" onclick="sortTable('colVsCol')">Collection vs Outstanding ${sortIcon('colVsCol')}</th> <th class="sortable" onclick="sortTable('emiVsCol')">EMI % ${sortIcon('emiVsCol')}</th> <th class="sortable" onclick="sortTable('nplPct')">NPL % ${sortIcon('nplPct')}</th> <th class="border-right sortable" onclick="sortTable('parPct')">PAR % ${sortIcon('parPct')}</th> <th>Action</th> `; DOM.tableBody.innerHTML = '';
         const avgRow = document.createElement('tr'); avgRow.className = 'row-avg';
-        avgRow.innerHTML = `<td class="border-right">Total Small Business</td><td>${avg.colVsCol.toFixed(2)}%</td><td>${avg.emiVsCol.toFixed(2)}%</td><td>${avg.nplPct.toFixed(2)}%</td><td>${avg.parPct.toFixed(2)}%</td>`; DOM.tableBody.appendChild(avgRow);
+        avgRow.innerHTML = `<td class="border-right">Total Small Business</td><td>${avg.colVsCol.toFixed(2)}%</td><td>${avg.emiVsCol.toFixed(2)}%</td><td>${avg.nplPct.toFixed(2)}%</td><td class="border-right">${avg.parPct.toFixed(2)}%</td><td class="action-cell">-</td>`; DOM.tableBody.appendChild(avgRow);
         
         if (state.sortCol) {
             grouped.sort((a, b) => {
@@ -558,16 +680,47 @@ function updateTable(filteredUnits) {
         
         grouped.forEach(row => {
             const tr = document.createElement('tr'); tr.className = level !== 'unit' ? 'clickable-row' : '';
-            tr.innerHTML = `<td class="cell-name border-right">${row.name}${level !== 'unit' ? ' <i class="fa-solid fa-chevron-right"></i>' : ''}</td><td class="${cellClass(row.colVsCol, avg.colVsCol, true)}">${row.colVsCol.toFixed(2)}%</td><td class="${cellClass(row.emiVsCol, avg.emiVsCol, true)}">${row.emiVsCol.toFixed(2)}%</td><td class="${cellClass(row.nplPct, avg.nplPct, false)}">${row.nplPct.toFixed(2)}%</td><td class="${cellClass(row.parPct, avg.parPct, false)}">${row.parPct.toFixed(2)}%</td>`;
-            if (level !== 'unit') { tr.onclick = () => handleTableRowClick(row.name); } DOM.tableBody.appendChild(tr);
+            tr.innerHTML = `<td class="cell-name border-right" onclick="if('${level}' !== 'unit') handleTableRowClick('${row.name}')">${row.name}${level !== 'unit' ? ' <i class="fa-solid fa-chevron-right"></i>' : ''}</td><td class="${cellClass(row.colVsCol, avg.colVsCol, true)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${row.name}')">${row.colVsCol.toFixed(2)}%</td><td class="${cellClass(row.emiVsCol, avg.emiVsCol, true)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${row.name}')">${row.emiVsCol.toFixed(2)}%</td><td class="${cellClass(row.nplPct, avg.nplPct, false)}" onclick="if('${level}' !== 'unit') handleTableRowClick('${row.name}')">${row.nplPct.toFixed(2)}%</td><td class="${cellClass(row.parPct, avg.parPct, false)} border-right" onclick="if('${level}' !== 'unit') handleTableRowClick('${row.name}')">${row.parPct.toFixed(2)}%</td><td class="action-cell"><button class="btn-insight" onclick="event.stopPropagation(); openInsightModal('${row.name}', '${level}')"><i class="fa-solid fa-eye"></i> View</button></td>`;
+            DOM.tableBody.appendChild(tr);
         });
     }
 }
 
 function updateBreadcrumb() {
-    let parts = []; if (state.filters.zone === 'all') parts.push('Country Level'); else parts.push(state.filters.zone);
-    if (state.filters.region !== 'all') parts.push(state.filters.region); if (state.filters.territory !== 'all') parts.push(state.filters.territory);
-    if (state.filters.unit !== 'all') parts.push(state.filters.unit); DOM.breadCrumb.textContent = parts.join(' > ');
+    let parts = []; 
+    parts.push({ text: 'Country Level', level: 'zone', filters: {zone: 'all', region: 'all', territory: 'all', unit: 'all'} });
+    if (state.filters.zone !== 'all') {
+        parts.push({ text: state.filters.zone, level: 'region', filters: {zone: state.filters.zone, region: 'all', territory: 'all', unit: 'all'} });
+    }
+    if (state.filters.region !== 'all') {
+        parts.push({ text: state.filters.region, level: 'territory', filters: {zone: state.filters.zone, region: state.filters.region, territory: 'all', unit: 'all'} });
+    }
+    if (state.filters.territory !== 'all') {
+        parts.push({ text: state.filters.territory, level: 'unit', filters: {zone: state.filters.zone, region: state.filters.region, territory: state.filters.territory, unit: 'all'} });
+    }
+    if (state.filters.unit !== 'all') {
+        parts.push({ text: state.filters.unit, level: 'unit', filters: {zone: state.filters.zone, region: state.filters.region, territory: state.filters.territory, unit: state.filters.unit} });
+    }
+
+    DOM.breadCrumb.innerHTML = parts.map((p, i) => {
+        if (i === parts.length - 1) return `<span class="crumb-current">${p.text}</span>`;
+        return `<a href="#" class="crumb-link" data-level="${p.level}" data-zone="${p.filters.zone}" data-region="${p.filters.region}" data-territory="${p.filters.territory}" data-unit="${p.filters.unit}">${p.text}</a>`;
+    }).join(' <span class="crumb-separator">></span> ');
+
+    DOM.breadCrumb.querySelectorAll('.crumb-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            state.drillLevel = e.target.dataset.level;
+            state.filters.zone = e.target.dataset.zone;
+            state.filters.region = e.target.dataset.region;
+            state.filters.territory = e.target.dataset.territory;
+            state.filters.unit = e.target.dataset.unit;
+            DOM.drillLevel.value = state.drillLevel;
+            populateDropdowns();
+            updateBreadcrumb();
+            updateDashboard();
+        });
+    });
 }
 
 DOM.exportCsvBtn.addEventListener('click', () => {
@@ -582,12 +735,110 @@ function updateDashboard() {
     const filteredUnits = getFilteredUnits();
     
     DOM.dashboardView.style.display = 'block'; 
-    DOM.ticketSizeFilterSection.style.display = state.tab === 'ticket' ? 'block' : 'none';
+    DOM.ticketSizeFilterSection.style.display = (state.tab === 'ticket') ? 'block' : 'none';
     
+    if (state.tab === 'analysis') {
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('analysisView').style.display = 'block';
+        document.getElementById('analysisLevelSelect').value = state.drillLevel;
+        updateAnalysisView();
+        return;
+    } else {
+        document.getElementById('dashboardView').style.display = 'block';
+        document.getElementById('analysisView').style.display = 'none';
+    }
+
     renderKPIs(filteredUnits); 
     updateCharts(filteredUnits); 
     updateTable(filteredUnits);
 }
+
+function updateAnalysisView() {
+    let filteredUnits = getFilteredUnits();
+    if(!unitData.length || !countryAvg) return;
+    
+    const level = state.drillLevel;
+    const metricKey = document.getElementById('analysisMetricSelect').value;
+    let baseMetricKey = 'overall';
+    
+    let cAvg = countryAvg[baseMetricKey] || {nplPct: 0, parPct: 0, colVsCol: 0, emiVsCol: 0};
+    let avgVal = cAvg[metricKey];
+    
+    let grouped = getGroupedData(filteredUnits, level, baseMetricKey);
+    
+    const mConfig = {
+        colVsCol: { title: 'Collection vs Outstanding', format: '%', higherBetter: true },
+        emiVsCol: { title: 'EMI', format: '%', higherBetter: true },
+        nplPct: { title: 'NPL', format: '%', higherBetter: false },
+        parPct: { title: 'PAR', format: '%', higherBetter: false }
+    };
+    let mc = mConfig[metricKey];
+    
+    let goodList = [];
+    let warnList = [];
+    let critList = [];
+    
+    grouped.forEach(item => {
+        let val = item[metricKey];
+        if (mc.higherBetter) {
+            if (val >= avgVal) { goodList.push(item); }
+            else if (val >= avgVal * 0.85) { warnList.push(item); }
+            else { critList.push(item); }
+        } else {
+            if (val <= avgVal) { goodList.push(item); }
+            else if (val <= avgVal * 1.15) { warnList.push(item); }
+            else { critList.push(item); }
+        }
+    });
+    
+    if (mc.higherBetter) {
+        goodList.sort((a,b) => b[metricKey] - a[metricKey]);
+        warnList.sort((a,b) => b[metricKey] - a[metricKey]);
+        critList.sort((a,b) => b[metricKey] - a[metricKey]);
+    } else {
+        goodList.sort((a,b) => a[metricKey] - b[metricKey]);
+        warnList.sort((a,b) => a[metricKey] - b[metricKey]);
+        critList.sort((a,b) => a[metricKey] - b[metricKey]);
+    }
+    
+    document.getElementById('analysisKpiRow').innerHTML = `
+        <div class="gap-kpi"><div class="gap-kpi-label">Country Average</div><div class="gap-kpi-value" style="color:var(--text-primary)">${avgVal.toFixed(2)}${mc.format}</div></div>
+        <div class="gap-kpi"><div class="gap-kpi-label">Performing Well</div><div class="gap-kpi-value" style="color:var(--accent-green)">${goodList.length}</div></div>
+        <div class="gap-kpi"><div class="gap-kpi-label">Below Average</div><div class="gap-kpi-value" style="color:var(--accent-amber)">${warnList.length}</div></div>
+        <div class="gap-kpi"><div class="gap-kpi-label">Critical Risk</div><div class="gap-kpi-value" style="color:var(--accent-red)">${critList.length}</div></div>
+    `;
+    
+    document.getElementById('countGood').textContent = goodList.length;
+    document.getElementById('countWarn').textContent = warnList.length;
+    document.getElementById('countCritical').textContent = critList.length;
+    
+    const renderItems = (arr, colorVar) => {
+        if (!arr.length) return `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-size: 0.85rem;"><i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 10px; opacity:0.3; display:block;"></i>No items in this segment</div>`;
+        return arr.map(item => `
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid ${colorVar};">
+                <div>
+                    <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px;">${item.name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Count: ${item.unitCount || 1} Units</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 800; font-size: 1.1rem; color: ${colorVar};">${item[metricKey].toFixed(2)}${mc.format}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">${(Math.abs(item[metricKey] - avgVal)).toFixed(2)}${mc.format} Diff</div>
+                </div>
+            </div>
+        `).join('');
+    };
+    
+    document.getElementById('listGood').innerHTML = renderItems(goodList, 'var(--accent-green)');
+    document.getElementById('listWarn').innerHTML = renderItems(warnList, 'var(--accent-amber)');
+    document.getElementById('listCritical').innerHTML = renderItems(critList, 'var(--accent-red)');
+}
+
+document.getElementById('analysisMetricSelect').addEventListener('change', updateAnalysisView);
+document.getElementById('analysisLevelSelect').addEventListener('change', (e) => {
+    state.drillLevel = e.target.value;
+    DOM.drillLevel.value = state.drillLevel;
+    updateDashboard();
+});
 
 DOM.zoneFilter.addEventListener('change', (e) => { state.filters.zone = e.target.value; if (e.target.value === 'all') { state.filters.region = 'all'; state.filters.territory = 'all'; state.filters.unit = 'all'; } populateDropdowns(); updateBreadcrumb(); updateDashboard(); });
 DOM.regionFilter.addEventListener('change', (e) => { state.filters.region = e.target.value; if (e.target.value === 'all') { state.filters.territory = 'all'; state.filters.unit = 'all'; } populateDropdowns(); updateBreadcrumb(); updateDashboard(); });
@@ -660,6 +911,7 @@ function applyTheme(theme) {
     const chartOptions = {
         theme: { mode: isDark ? 'dark' : 'light' },
         chart: { background: isDark ? '#1a1f2e' : '#ffffff' },
+        dataLabels: { style: { colors: [isDark ? '#fff' : '#1e293b'] } },
         xaxis: { labels: { style: { colors: isDark ? 'rgba(255,255,255,0.7)' : '#334155' } } },
         yaxis: { labels: { style: { colors: isDark ? 'rgba(255,255,255,0.7)' : '#334155' } } },
         grid: { borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0' },

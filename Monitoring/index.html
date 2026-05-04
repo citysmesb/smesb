@@ -12,12 +12,12 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
-<script>
-    // Early guard: if not authenticated, redirect to login
-    if (!localStorage.getItem('authenticated')) {
-        window.location.replace('login.html');
-    }
-</script>
+    <script>
+        // Early guard: if not authenticated, redirect to login
+        if (!localStorage.getItem('authenticated')) {
+            window.location.replace('login.html');
+        }
+    </script>
 
 <body>
     <!-- Sidebar -->
@@ -34,7 +34,8 @@
             <button id="downloadJsonBtn" class="download-json-btn" style="display:none;"><i
                     class="fa-solid fa-download"></i> Save as JSON</button>
             <input type="file" id="jsonUpload" accept=".json" style="display:none;" />
-            <button id="loadJSONBtn" class="load-json-btn" style="display:none;"><i class="fa-solid fa-upload"></i> Load JSON</button>
+            <button id="loadJSONBtn" class="load-json-btn" style="display:none;"><i class="fa-solid fa-upload"></i> Load
+                JSON</button>
         </div>
 
         <div class="filter-divider"></div>
@@ -146,10 +147,19 @@
             </section>
             <!-- Charts: 4 zone-wise charts -->
             <section class="charts-grid" id="chartsGrid">
+                <div class="card chart-card" id="chartCardCollectionPct">
+                    <div class="chart-header">
+                        <h3 class="card-title"><i class="fa-solid fa-percentage" style="color:var(--accent-purple)"></i>
+                            COLLECTION %</h3>
+                        <button class="expand-btn" onclick="openChartModal('collectionPct')"><i
+                                class="fa-solid fa-expand"></i></button>
+                    </div>
+                    <div id="chartCollectionPct"></div>
+                </div>
                 <div class="card chart-card" id="chartCardColVsCol">
                     <div class="chart-header">
                         <h3 class="card-title"><i class="fa-solid fa-chart-pie" style="color:var(--accent-blue)"></i>
-                            COLLECTION VS OUTSTANDING %</h3>
+                            Out VS Col %</h3>
                         <button class="expand-btn" onclick="openChartModal('colVsCol')"><i
                                 class="fa-solid fa-expand"></i></button>
                     </div>
@@ -207,7 +217,8 @@
                         METRIC:</label>
                     <select id="analysisMetricSelect" class="filter-select"
                         style="min-width: 150px; margin: 0; background: var(--bg-primary); padding: 6px 12px;">
-                        <option value="colVsCol">Collection vs Outstanding %</option>
+                        <option value="collectionPct">Collection %</option>
+                        <option value="colVsCol">Out vs Col %</option>
                         <option value="emiVsCol">EMI %</option>
                         <option value="nplPct" selected>NPL %</option>
                         <option value="parPct">PAR %</option>
@@ -310,7 +321,7 @@
     <!-- Libraries -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="realData.js"></script>
+    <script>document.write('<script src="realData.js?v=' + new Date().getTime() + '"></' + 'script>');</script>
     <script src="app.js?v=2"></script>
 </body>
 

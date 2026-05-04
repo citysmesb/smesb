@@ -42,7 +42,9 @@ const DOM = {
     chartModal: document.getElementById('chartModal'),
     modalTitle: document.getElementById('modalTitle'),
     modalChart: document.getElementById('modalChart'),
-    themeToggle: document.getElementById('themeToggle')
+    themeToggle: document.getElementById('themeToggle'),
+    // Load persisted JSON data if available
+    loadJSONBtn: document.getElementById('loadJSONBtn')
 };
 
 let charts = {};
@@ -264,6 +266,8 @@ function parseExcelData(arrayBuffer) {
                 localStorage.setItem('portfolioData_unitData', JSON.stringify(unitData));
                 localStorage.setItem('portfolioData_countryAvg', JSON.stringify(countryAvg));
                 localStorage.setItem('portfolioData_subtotals', JSON.stringify(subtotals));
+                // Store combined data for quick reload
+                localStorage.setItem('persistedData', JSON.stringify({unitData, countryAvg, subtotals}));
             } catch(e) {
                 console.warn("Could not save to localStorage (quota exceeded?)", e);
             }
@@ -275,6 +279,66 @@ function parseExcelData(arrayBuffer) {
         } catch(err) { console.error(err); DOM.uploadStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-red)"></i> ${err.message}`; }
     }, 100);
 }
+    // =============================
+    // JSON LOAD HANDLING
+    // =============================
+    // Hidden file input for JSON
+    DOM.jsonUpload = document.getElementById('jsonUpload');
+    // When Load JSON button clicked, trigger hidden input
+    if (DOM.loadJSONBtn) {
+        DOM.loadJSONBtn.addEventListener('click', () => {
+            if (DOM.jsonUpload) DOM.jsonUpload.click();
+        });
+    }
+    // Handle selected JSON file
+    if (DOM.jsonUpload) {
+        DOM.jsonUpload.addEventListener('change', (e) => {
+            if (!e.target.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    unitData = data.unitData || [];
+                    countryAvg = data.countryAvg || {};
+                    subtotals = data.subtotals || {};
+                    // Save back to localStorage for future loads
+                    localStorage.setItem('persistedData', JSON.stringify({ unitData, countryAvg, subtotals }));
+                    localStorage.setItem('portfolioData_unitData', JSON.stringify(unitData));
+                    localStorage.setItem('portfolioData_countryAvg', JSON.stringify(countryAvg));
+                    localStorage.setItem('portfolioData_subtotals', JSON.stringify(subtotals));
+                    DOM.downloadJsonBtn.style.display = 'block';
+                    populateDropdowns();
+                    updateDashboard();
+                } catch (err) {
+                    console.error('Failed to load JSON:', err);
+                    alert('Invalid JSON file. Please select a valid exported JSON.');
+                }
+            };
+            reader.readAsText(e.target.files[0]);
+        });
+    }
+    // Automatically preload persisted data on page load
+    const preloadData = () => {
+        const saved = localStorage.getItem('persistedData');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                unitData = data.unitData || [];
+                countryAvg = data.countryAvg || {};
+                subtotals = data.subtotals || {};
+                DOM.downloadJsonBtn.style.display = 'block';
+                populateDropdowns();
+                updateDashboard();
+            } catch (e) {
+                console.warn('Failed to parse persisted data:', e);
+            }
+        }
+    };
+    // Call preload after DOM ready
+    window.addEventListener('DOMContentLoaded', () => {
+        applyTheme(state.theme);
+        preloadData();
+    });
 DOM.excelUpload.addEventListener('change', (e) => {
     if(!e.target.files[0]) return; const reader = new FileReader(); reader.onload = (evt) => parseExcelData(evt.target.result); reader.readAsArrayBuffer(e.target.files[0]);
 });

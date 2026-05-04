@@ -545,18 +545,19 @@ window.renderInsightTimeline = function (overrideMetric) {
     let baseMetricKey = getMetricKey();
     if (baseMetricKey === 'both') baseMetricKey = 'below10'; // Default to Below 10 Lacs for Modal if 'both' is selected
 
-    let cAvg = countryAvg[baseMetricKey] || { nplPct: 0, parPct: 0, colVsCol: 0, emiVsCol: 0 };
+    let cAvg = Object.assign({ nplPct: 0, parPct: 0, colVsCol: 0, emiVsCol: 0, collectionPct: 0 }, countryAvg[baseMetricKey] || {});
 
     let targetData = getFilteredUnits().filter(u => u[level] === name);
     let targetAgg = aggregateMetrics(targetData, baseMetricKey);
 
     if (subtotals[name] && subtotals[name][baseMetricKey]) {
         let exact = subtotals[name][baseMetricKey];
-        if (exact.colVsCol > 0 || exact.nplPct > 0 || exact.parPct > 0) {
-            targetAgg.colVsCol = exact.colVsCol;
-            targetAgg.emiVsCol = exact.emiVsCol;
-            targetAgg.nplPct = exact.nplPct;
-            targetAgg.parPct = exact.parPct;
+        if (exact.colVsCol > 0 || exact.nplPct > 0 || exact.parPct > 0 || exact.collectionPct > 0) {
+            targetAgg.colVsCol = exact.colVsCol || targetAgg.colVsCol;
+            targetAgg.emiVsCol = exact.emiVsCol || targetAgg.emiVsCol;
+            targetAgg.nplPct = exact.nplPct || targetAgg.nplPct;
+            targetAgg.parPct = exact.parPct || targetAgg.parPct;
+            targetAgg.collectionPct = exact.collectionPct || targetAgg.collectionPct;
         }
     }
 
@@ -872,12 +873,13 @@ function updateAnalysisView() {
     const metricKey = document.getElementById('analysisMetricSelect').value;
     let baseMetricKey = 'overall';
 
-    let cAvg = countryAvg[baseMetricKey] || { nplPct: 0, parPct: 0, colVsCol: 0, emiVsCol: 0 };
+    let cAvg = Object.assign({ nplPct: 0, parPct: 0, colVsCol: 0, emiVsCol: 0, collectionPct: 0 }, countryAvg[baseMetricKey] || {});
     let avgVal = cAvg[metricKey];
 
     let grouped = getGroupedData(filteredUnits, level, baseMetricKey);
 
     const mConfig = {
+        collectionPct: { title: 'Collection', format: '%', higherBetter: true },
         colVsCol: { title: 'Out vs Col', format: '%', higherBetter: true },
         emiVsCol: { title: 'EMI', format: '%', higherBetter: true },
         nplPct: { title: 'NPL', format: '%', higherBetter: false },

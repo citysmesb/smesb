@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Manual - Customer Retention</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #D32F2F;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #003366;
+            margin: 0 0 5px 0;
+            font-size: 1.8em;
+        }
+        .header p {
+            color: #666;
+            margin: 0;
+            font-size: 1.1em;
+        }
+        
+        /* Toggle Switch Styling */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            background: #eef2f5;
+            padding: 10px;
+            border-radius: 50px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .lang-label {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #003366;
+            margin: 0 15px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #D32F2F;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #003366;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Card Styling */
+        .step-card {
+            background: #fdfdfd;
+            border-left: 5px solid #003366;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 6px 6px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .step-title {
+            font-size: 1.25em;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 10px;
+        }
+        .example-box {
+            background: #eef2f5;
+            border: 1px solid #cdd7e0;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #D32F2F;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .warning {
+            color: #D32F2F;
+            font-size: 0.95em;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Language Sections */
+        #manual-en {
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Customer Retention Monitoring User Manual</h1>
+            <p>Small & Microfinance Business </p>
+        </div>
+
+        <!-- Toggle Switch -->
+        <div class="toggle-container">
+            <span class="lang-label">বাংলা</span>
+            <label class="switch">
+                <input type="checkbox" id="langToggle" onchange="switchLanguage()">
+                <span class="slider"></span>
+            </label>
+            <span class="lang-label">English</span>
+        </div>
+
+        <!-- BANGLA MANUAL (Default) -->
+        <div id="manual-bn">
+            <div class="step-card">
+                <div class="step-title">ধাপ ১: ফর্মটি খুলুন</div>
+                <div>আপনার মোবাইল ফোন বা কম্পিউটার থেকে <a href="https://ee.kobotoolbox.org/x/44wjMzJg" target="_blank"><b>এই লিংকে ক্লিক করে</b></a> ফর্মটি ওপেন করুন।</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">ধাপ ২: এমপ্লয়ি আইডি (Employee ID) দিন</div>
+                <div>প্রথম বক্সে আপনার নিজস্ব <b>Employee ID</b> লিখুন এবং স্ক্রিনে আপনার নাম সঠিক আছে কি না তা যাচাই করুন।</div>
+                <div class="example-box">উদাহরণ: 20250549 (Md. Mehedi Hasan)</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">ধাপ ৩: অ্যাকাউন্ট নম্বর (AC NO) দিন</div>
+                <div>আপনি যে গ্রাহকের সাথে ফলো-আপ করেছেন, তার সঠিক <b>অ্যাকাউন্ট নম্বরটি</b> নির্ভুলভাবে লিখুন।
+                <span class="warning">⚠️ সতর্কবার্তা: অ্যাকাউন্টটি আপনার নামে অ্যাসাইন করা না থাকলে আপনি ফর্মের পরবর্তী ধাপে যেতে পারবেন না।</span></div>
+                <div class="example-box">উদাহরণ: 7011384496002</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">ধাপ ৪: ফলো-আপের ধরণ ও তারিখ নির্বাচন করুন</div>
+                <div>গ্রাহকের সাথে ফলো-আপ সম্পন্ন হয়েছে কিনা তা নিশ্চিত করুন এবং ক্যালেন্ডার থেকে সঠিক <b>ফলো-আপের তারিখ</b> নির্বাচন করুন। (ভবিষ্যতের তারিখ দেওয়া যাবে না)।</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">ধাপ ৫: মতামত ও পর্যবেক্ষণ রেকর্ড করুন</div>
+                <div>তালিকা থেকে গ্রাহকের মতামত নির্বাচন করুন। গ্রাহকের একাধিক সমস্যা থাকলে একাধিক নির্বাচন করুন  এবং নিচের বক্সে (Feedback / Additional Details) বিস্তারিত বিবরণ লিখুন। লিস্টে উল্লেখিত সমস্যার বাইরের কিছু থাকলে <b>"Other"</b> নির্বাচন করুন এবং  নিচের বক্সে (Feedback / Additional Details) বিস্তারিত বিবরণ লিখুন</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">ধাপ ৬: সাবমিট করুন</div>
+                <div>আপনার দেওয়া সব তথ্য সঠিক আছে কি না তা পুনরায় মিলিয়ে নিন। ফর্মের একদম নিচে গিয়ে <b>Submit</b> বাটনে ক্লিক করুন।</div>
+            </div>
+        </div>
+
+        <!-- ENGLISH MANUAL -->
+        <div id="manual-en">
+            <div class="step-card">
+                <div class="step-title">Step 1: Access the Form</div>
+                <div>Please <a href="https://ee.kobotoolbox.org/x/44wjMzJg" target="_blank"><b>click this link</b></a> from your mobile phone or computer to open the form.</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">Step 2: Enter Your Employee ID</div>
+                <div>Type your unique <b>Employee ID</b> into the first box. Wait a moment and verify that your Name appear correctly on the screen.</div>
+                <div class="example-box">Example: 20250549 (Md. Mehedi Hasan)</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">Step 3: Enter Account Number</div>
+                <div>Enter the accurate <b>Account Number (AC NO)</b> of the customer you have followed up with.
+                <span class="warning">⚠️ Note: You cannot proceed if the account is not assigned to your Employee ID.</span></div>
+                <div class="example-box">Example: 7011384496002</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">Step 4: Select Follow-up Date</div>
+                <div>Confirm how the follow-up with the customer was completed and select the exact <b>Follow-up Date</b> from the calendar. (Future dates are not allowed).</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">Step 5: Record Observations</div>
+                <div>Select the customer feedback from the list. If the customer has multiple issues, select multiple options and provide a detailed description in the box below (Feedback / Additional Details). If the issue is not mentioned in the list, select <b>"Other"</b> and provide the details in the box below (Feedback / Additional Details).</div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-title">Step 6: Submit Data</div>
+                <div>Review your entries to ensure everything is accurate, then scroll to the bottom and click the <b>Submit</b> button.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript for Toggle functionality -->
+    <script>
+        function switchLanguage() {
+            var toggle = document.getElementById("langToggle");
+            var manualBn = document.getElementById("manual-bn");
+            var manualEn = document.getElementById("manual-en");
+
+            if (toggle.checked) {
+                // Show English, Hide Bangla
+                manualBn.style.display = "none";
+                manualEn.style.display = "block";
+            } else {
+                // Show Bangla, Hide English
+                manualBn.style.display = "block";
+                manualEn.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

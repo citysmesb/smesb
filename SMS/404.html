@@ -2,19 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Small & Microfinance Business</title>
     <script type="text/javascript">
-      // SPA Fallback for GitHub Pages with HashRouter
-      var pathSegmentsToKeep = 0;
-      var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.host + l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      // Enforce trailing slash or hash redirect for GitHub Pages SPA
+      var path = window.location.pathname;
+      var hash = window.location.hash;
+      if (!path.endsWith('/') && !path.endsWith('.html')) {
+        window.location.replace(path + '/' + hash);
+      }
     </script>
-    <title>Staff Management System</title>
   </head>
   <body>
+    <div id="root"></div>
   </body>
 </html>

@@ -1,0 +1,1 @@
+<!DOCTYPE html><html><body><div id="out">Loading...</div><script>fetch('data/latest_staff.json').then(r=>r.json()).then(d=>{ document.getElementById('out').innerText = 'Data length: ' + d.length + ', maxMonth: ' + d.map(x=>x.Month_Date).sort().pop(); }).catch(e=>document.getElementById('out').innerText = 'Error: ' + e);</script></body></html>

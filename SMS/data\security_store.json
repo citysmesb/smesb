@@ -1,0 +1,155 @@
+{
+  "users": [
+    {
+      "id": "usr-101",
+      "employeeId": "20251384",
+      "fullName": "Maruf Billah",
+      "username": "admin",
+      "email": "maruf_billah@citybankplc.com",
+      "password": "super_admin@321",
+      "designation": "manager BI & MIS",
+      "roleId": "role-super-admin",
+      "roleName": "Super Admin",
+      "status": "Active",
+      "lastLogin": "2026-09-01 15:45",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "usr-000001",
+      "employeeId": "000001",
+      "fullName": "Officer Account",
+      "username": "officer",
+      "email": "officer@citybankplc.com",
+      "password": "officer@321",
+      "designation": "officer",
+      "roleId": "role-officer",
+      "roleName": "Officer",
+      "status": "Active",
+      "lastLogin": "2026-09-01 15:45",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "usr-00000",
+      "employeeId": "00000",
+      "fullName": "Unit Manager Account",
+      "username": "unit_manager",
+      "email": "unit_manager@citybankplc.com",
+      "password": "um@321",
+      "designation": "unit manager",
+      "roleId": "role-unit-manager",
+      "roleName": "Unit Manager",
+      "status": "Active",
+      "lastLogin": "2026-09-01 15:45",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "usr-102",
+      "employeeId": "20260002",
+      "fullName": "Operations Manager",
+      "username": "manager",
+      "email": "manager@citybankplc.com",
+      "password": "manager123",
+      "designation": "Senior Operations Manager",
+      "roleId": "role-manager",
+      "roleName": "Regional Manager",
+      "status": "Active",
+      "lastLogin": "2026-09-01 11:15",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+    }
+  ],
+  "roles": [
+    {
+      "id": "role-super-admin",
+      "name": "Super Admin",
+      "code": "SUPER_ADMIN",
+      "description": "Full unrestricted administrative access to all menus, permissions, and security settings.",
+      "isSystem": true,
+      "status": "Active",
+      "permissions": {
+        "dashboard": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "employeeList": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "employeeList2": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "organogram": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "validation": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "perf_ro": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "perf_um": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "perf_tm": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "perf_rh": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "perf_zh": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "perf_analytics": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "geomap_perf": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "user_roles": { "view": true, "create": true, "edit": true, "delete": true, "export": true },
+        "user_users": { "view": true, "create": true, "edit": true, "delete": true, "export": true }
+      }
+    },
+    {
+      "id": "role-officer",
+      "name": "Officer",
+      "code": "OFFICER",
+      "description": "Access limited to Employee List and Organogram modules only.",
+      "isSystem": false,
+      "status": "Active",
+      "permissions": {
+        "dashboard": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "employeeList": { "view": true, "create": true, "edit": true, "delete": false, "export": true },
+        "employeeList2": { "view": true, "create": true, "edit": true, "delete": false, "export": true },
+        "organogram": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "validation": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_ro": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_um": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_tm": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_rh": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_zh": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_analytics": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "geomap_perf": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "user_roles": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "user_users": { "view": false, "create": false, "edit": false, "delete": false, "export": false }
+      }
+    },
+    {
+      "id": "role-unit-manager",
+      "name": "Unit Manager",
+      "code": "UNIT_MANAGER",
+      "description": "Access limited to Employee List and Organogram modules only.",
+      "isSystem": false,
+      "status": "Active",
+      "permissions": {
+        "dashboard": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "employeeList": { "view": true, "create": true, "edit": true, "delete": false, "export": true },
+        "employeeList2": { "view": true, "create": true, "edit": true, "delete": false, "export": true },
+        "organogram": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "validation": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_ro": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_um": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_tm": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_rh": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_zh": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "perf_analytics": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "geomap_perf": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "user_roles": { "view": false, "create": false, "edit": false, "delete": false, "export": false },
+        "user_users": { "view": false, "create": false, "edit": false, "delete": false, "export": false }
+      }
+    },
+    {
+      "id": "role-manager",
+      "name": "Regional Manager",
+      "code": "REGIONAL_MGR",
+      "description": "Access to Employee Directory, Organogram, Performance Analytics, and Geo Map.",
+      "isSystem": false,
+      "status": "Active",
+      "permissions": {
+        "dashboard": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "employeeList": { "view": true, "create": false, "edit": true, "delete": false, "export": true },
+        "employeeList2": { "view": true, "create": false, "edit": true, "delete": false, "export": true },
+        "organogram": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "perf_ro": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "perf_um": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "perf_tm": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "perf_rh": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "perf_zh": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "perf_analytics": { "view": true, "create": false, "edit": false, "delete": false, "export": true },
+        "geomap_perf": { "view": true, "create": false, "edit": false, "delete": false, "export": true }
+      }
+    }
+  ]
+}

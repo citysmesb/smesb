@@ -1,0 +1,54 @@
+.leaflet-container {
+    font-family: inherit;
+    background: transparent;
+}
+
+/* Force override of all Leaflet defaults */
+.leaflet-tooltip {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Hide the Leaflet tooltip pointers */
+.leaflet-tooltip-top::before,
+.leaflet-tooltip-bottom::before,
+.leaflet-tooltip-left::before,
+.leaflet-tooltip-right::before,
+.leaflet-tooltip::before {
+    display: none !important;
+    opacity: 0 !important;
+}
+
+/* The 6 target districts (Highly visible, no background) */
+.leaflet-tooltip.district-label-target {
+    font-weight: 900;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #0f172a !important; /* Very dark slate, almost black */
+    text-shadow: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* All other districts (Mute color, readable, no background) */
+.leaflet-tooltip.district-label-other {
+    font-weight: 700;
+    font-size: 7px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8 !important; /* Mute slate/gray */
+    text-shadow: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}

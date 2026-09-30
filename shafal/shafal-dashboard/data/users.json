@@ -2,7 +2,7 @@
   {
     "id": "1",
     "name": "Admin User",
-    "email": "admin@shafal.org",
+    "email": "xyz@shafal.org",
     "password": "admin123",
     "role": "Admin",
     "permissions": [
@@ -10,6 +10,10 @@
       "indicators",
       "geographic-map",
       "data",
+      "case-stories",
+      "archive",
+      "uncdf",
+      "remittance",
       "users"
     ]
   },
@@ -30,13 +34,30 @@
     "id": "3",
     "name": "UNCDF",
     "email": "uncdf@shafal.org",
-    "password": "admin123",
+    "password": "uncdf@123",
     "role": "UNCDF",
     "permissions": [
       "dashboard",
       "indicators",
       "geographic-map",
-      "data"
+      "data",
+      "case-stories",
+      "archive",
+      "uncdf",
+      "remittance"
+    ]
+  },
+  {
+    "id": "4",
+    "name": "Swiss Contact",
+    "email": "swiss@shafal.org",
+    "password": "swiss@123",
+    "role": "Swiss",
+    "permissions": [
+      "dashboard",
+      "geographic-map",
+      "indicators",
+      "case-stories"
     ]
   }
 ]

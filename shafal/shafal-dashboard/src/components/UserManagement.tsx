@@ -27,9 +27,14 @@ export default function UserManagement() {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch('/api/users');
-            const data = await res.json();
-            setUsers(data);
+            // Mock users for static export
+            const mockUsers = [
+                { "id": "1", "name": "Admin User", "email": "admin@shafal.org", "role": "Admin", "permissions": ["dashboard", "indicators", "geographic-map", "data", "case-stories", "archive", "uncdf", "remittance", "users"] },
+                { "id": "2", "name": "City Bank", "email": "cbl@shafal.org", "role": "CBL", "permissions": ["dashboard", "indicators", "geographic-map", "data"] },
+                { "id": "3", "name": "UNCDF", "email": "uncdf@shafal.org", "role": "UNCDF", "permissions": ["dashboard", "indicators", "geographic-map", "data", "case-stories", "archive", "uncdf", "remittance"] },
+                { "id": "4", "name": "Swiss Contact", "email": "swiss@shafal.org", "role": "Swiss", "permissions": ["dashboard", "geographic-map", "indicators", "case-stories"] }
+            ];
+            setUsers(mockUsers);
         } catch (e) {
             console.error("Failed to fetch users");
         } finally {

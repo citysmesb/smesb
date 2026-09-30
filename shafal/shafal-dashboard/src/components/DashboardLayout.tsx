@@ -45,19 +45,43 @@ export default function DashboardLayout({
   
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [userRole, setUserRole] = useState("");
+  const [sessionUser, setSessionUser] = useState<any>(null);
+
   useEffect(() => { 
     const loggedIn = localStorage.getItem("shafal_logged_in");
     if (!loggedIn) { 
       window.location.href = "/smesb/shafal/login"; 
     } else {
+      let isGuest = false;
+      let parsedUser = null;
       if (loggedIn === "guest") {
-          const path = window.location.pathname.replace('/smesb/shafal', '') || '/';
-          if (path !== '/' && path !== '/geographic-map' && !path.startsWith('/case-stories')) {
-              window.location.href = "/smesb/shafal/";
-              return;
+          isGuest = true;
+          parsedUser = { name: "Guest User", role: "Guest", permissions: ["dashboard", "geographic-map", "case-stories"] };
+      } else if (loggedIn === "true") {
+          // Legacy admin fallback
+          parsedUser = { name: "Admin User", role: "Admin", permissions: ["dashboard", "geographic-map", "indicators", "data", "case-stories", "archive", "uncdf", "remittance", "users"] };
+      } else {
+          try {
+              parsedUser = JSON.parse(loggedIn);
+              if (parsedUser.role === 'Guest') isGuest = true;
+          } catch(e) {
+              parsedUser = { name: "Admin User", role: "Admin", permissions: ["dashboard", "geographic-map", "indicators", "data", "case-stories", "archive", "uncdf", "remittance", "users"] };
           }
       }
-      setUserRole(loggedIn);
+      
+      setSessionUser(parsedUser);
+
+      // Restrict guest routes strictly
+      if (isGuest) {
+          const path = window.location.pathname.replace('/smesb/shafal', '') || '/';
+          if (!parsedUser.permissions.find((p: string) => path === '/' && p === 'dashboard' || path.includes(p))) {
+              if (path !== '/' && path !== '/geographic-map' && !path.startsWith('/case-stories')) {
+                  window.location.href = "/smesb/shafal/";
+                  return;
+              }
+          }
+      }
+      setUserRole(isGuest ? "guest" : parsedUser.role);
       setIsAuthChecking(false);
     }
   }, []);
@@ -126,17 +150,10 @@ export default function DashboardLayout({
     { id: "users", label: "User Management", icon: Users, href: "/users", permId: "users", group: "ADMINISTRATION" }
   ];
 
-  let navItems = permissions 
-    ? allNavItems.filter(item => permissions.includes(item.permId) || item.permId === 'case-stories' || item.permId === 'archive' || item.permId === 'uncdf' || item.permId === 'remittance')
-    : allNavItems; // fallback if permissions not provided
+  let navItems = sessionUser && sessionUser.permissions 
+    ? allNavItems.filter(item => sessionUser.permissions.includes(item.permId))
+    : allNavItems; 
 
-  if (role === 'Admin' && !navItems.find(i => i.id === 'users')) {
-      navItems.push({ id: "users", label: "User Management", icon: Users, href: "/users", permId: "users", group: "ADMINISTRATION" });
-  }
-
-  if (userRole === "guest") {
-      navItems = allNavItems.filter(item => ["dashboard", "geographic-map", "case-stories"].includes(item.permId));
-  }
 
   if (isAuthChecking) {
         return (
@@ -279,12 +296,12 @@ export default function DashboardLayout({
           <div className="flex items-center justify-between">
             <div className="flex items-center overflow-hidden">
                 <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
-                    <span className="text-white font-black text-sm">{userName.charAt(0).toUpperCase()}</span>
+                    <span className="text-white font-black text-sm">{sessionUser?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
                 </div>
                 {!isCollapsed && (
                     <div className="ml-3 flex flex-col min-w-0">
-                        <span className="font-bold text-white text-sm truncate">{userName}</span>
-                        <span className="text-xs font-semibold text-slate-400 truncate">{role}</span>
+                        <span className="font-bold text-white text-sm truncate">{sessionUser?.name || 'User'}</span>
+                        <span className="text-xs font-semibold text-slate-400 truncate">{sessionUser?.role || 'Viewer'}</span>
                     </div>
                 )}
             </div>

@@ -121,10 +121,24 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
           .catch(e => console.error(e));
     }, []);
 
-    // Filter remittance by milestone
+    // Filter remittance by milestone, district, and gender
     const activeRemittance = useMemo(() => {
-        return remittanceRecords.filter(r => r.ACCT_NAME && (milestoneFilter === "All" || !r.milestone || r.milestone === milestoneFilter));
-    }, [remittanceRecords, milestoneFilter]);
+        return remittanceRecords.filter(r => {
+            if (!r.ACCT_NAME) return false;
+            if (milestoneFilter !== "All" && r.milestone && r.milestone !== milestoneFilter) return false;
+            
+            if (selectedDistrict && r.District !== selectedDistrict) return false;
+            
+            if (selectedGender) {
+                const rGender = (r.GENDER || '').toUpperCase();
+                const sGender = selectedGender.toUpperCase();
+                if (sGender === 'FEMALE' && rGender !== 'F' && rGender !== 'FEMALE') return false;
+                if (sGender === 'MALE' && rGender !== 'M' && rGender !== 'MALE') return false;
+            }
+            
+            return true;
+        });
+    }, [remittanceRecords, milestoneFilter, selectedDistrict, selectedGender]);
 
     const remittanceTotalDisbursed = activeRemittance.reduce((acc, curr) => acc + (Number(curr.DIS_AMT) || 0), 0);
     const remittanceTotalLoans = activeRemittance.length;

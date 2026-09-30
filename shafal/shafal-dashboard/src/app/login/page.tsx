@@ -37,13 +37,32 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 800)); localStorage.setItem("shafal_logged_in", "true"); router.push("/");
+    await new Promise(r => setTimeout(r, 800)); 
+    
+    // Mock user database
+    const users = [
+      { email: "admin@shafal.org", password: "admin123", name: "Admin User", role: "Admin", permissions: ["dashboard", "indicators", "geographic-map", "data", "case-stories", "archive", "uncdf", "remittance", "users"] },
+      { email: "cbl@shafal.org", password: "admin123", name: "City Bank", role: "CBL", permissions: ["dashboard", "indicators", "geographic-map", "data"] },
+      { email: "uncdf@shafal.org", password: "uncdf@123", name: "UNCDF", role: "UNCDF", permissions: ["dashboard", "indicators", "geographic-map", "data", "case-stories", "archive", "uncdf", "remittance"] },
+      { email: "swiss@shafal.org", password: "swiss@123", name: "Swiss Contact", role: "Swiss", permissions: ["dashboard", "geographic-map", "indicators", "case-stories"] }
+    ];
+
+    const validUser = users.find(u => u.email === email && u.password === password);
+
+    if (validUser) {
+        localStorage.setItem("shafal_logged_in", JSON.stringify(validUser)); 
+        router.push("/");
+    } else {
+        setError("Invalid email or password");
+        setLoading(false);
+    }
   };
 
   const handleGuestLogin = async () => {
     setLoading(true);
     await new Promise(r => setTimeout(r, 400)); 
-    localStorage.setItem("shafal_logged_in", "guest"); 
+    const guestUser = { name: "Guest User", role: "Guest", permissions: ["dashboard", "geographic-map", "case-stories"] };
+    localStorage.setItem("shafal_logged_in", JSON.stringify(guestUser)); 
     router.push("/");
   };
 
@@ -146,7 +165,7 @@ export default function LoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="appearance-none block w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    placeholder="xyz@shafal.org"
+                                    placeholder="User ID or email address"
                                 />
                             </div>
 

@@ -76,7 +76,7 @@ export default function LoginPage() {
                         alt="Shafal Project Background" 
                         fill
                         className="object-cover animate-pan-image"
-                        priority={idx === 0}
+                        priority={true}
                     />
                 </div>
             ))}

@@ -294,10 +294,7 @@ export default function DashboardLayout({
         
         {/* Global Milestone Header */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
-           <div className="font-bold text-slate-700 flex items-center space-x-2">
-             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-             <span>Project Workspace</span>
-           </div>
+           <div></div>
            <div className="flex items-center space-x-3">
               <span className="text-sm text-slate-500 font-medium">Active Phase:</span>
               <div className="flex bg-slate-100 p-1 rounded-lg">{["All", "Milestone I", "Milestone II", "Milestone III"].map((m) => (<button key={m} onClick={() => setMilestoneFilter(m)} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${milestoneFilter === m ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>{m === "All" ? "All" : m.replace("Milestone ", "")}</button>))}</div>

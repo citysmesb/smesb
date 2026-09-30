@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City Bank & UNCDF | Shafal & A2GF Project Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Use html2pdf for robust PDF export if preferred, but window.print is configured cleanly via CSS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  :root {
+    --ink: #1e293b;
+    --bg: #f8fafc;
+    --primary: #0ea5e9;
+    --secondary: #10b981;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+  }
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .dashboard-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+  }
+  .metric-box {
+    background: #f1f5f9;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+  }
+  .metric-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.05em;
+  }
+  .metric-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 0.25rem;
+  }
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.875rem;
+  }
+  .data-row:last-child {
+    border-bottom: none;
+  }
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .pdf-btn {
+    background: #0f172a;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .pdf-btn:hover { background: #334155; }
+  
+  @media print {
+    body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dashboard-container { max-width: 100%; padding: 0; }
+    .card, section { box-shadow: none; border: 1px solid #cbd5e1; margin-bottom: 1.5rem; page-break-inside: avoid; break-inside: avoid; }
+    .no-print { display: none !important; }
+    .metric-box { background: white; border: 1px solid #cbd5e1; page-break-inside: avoid; break-inside: avoid; }
+    .data-row { page-break-inside: avoid; break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="dashboard-container" id="dashboard-content">
+  
+  <!-- Header & Actions -->
+  <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-200 pb-6">
+    <div>
+      <div class="text-xs font-bold tracking-widest text-slate-500 uppercase mb-2">Strategic Partnership</div>
+      <h1 class="text-3xl md:text-4xl font-extrabold"><span style="color: #dc2626;">City Bank</span> <span class="text-slate-300 mx-1">×</span> <span style="color: #1e3a8a;">UNCDF</span></h1>
+      <p class="text-slate-600 mt-2 font-medium">Digital Financial Inclusion & Access to Green Climate Finance</p>
+    </div>
+    <div class="flex gap-2 no-print pdf-actions">
+      <button class="pdf-btn" onclick="generatePDF('portrait')">
+        <i class="fas fa-file-pdf"></i> Portrait
+      </button>
+      <button class="pdf-btn" style="background: #0ea5e9;" onclick="generatePDF('landscape')">
+        <i class="fas fa-file-pdf"></i> Landscape
+      </button>
+    </div>
+  </header>
+
+  <!-- ==============================================
+       PROJECT OVERVIEW
+       ============================================== -->
+  <section class="mb-8">
+    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm border-l-4 border-l-slate-800">
+      <h2 class="text-xl font-bold text-slate-900 mb-4">Project Brief: Shafal</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+        <div class="metric-box bg-slate-50 border-none">
+          <div class="metric-title">Project Value</div>
+          <div class="metric-value text-slate-800">৳2.35 Crore</div>
+          <div class="text-xs text-slate-500 mt-1 font-semibold">DFL & DFS Combined</div>
+        </div>
+        <div class="metric-box bg-slate-50 border-none">
+          <div class="metric-title">Project Timeline</div>
+          <div class="metric-value text-slate-800">Oct 25 – Mar 27</div>
+          <div class="text-xs text-slate-500 mt-1 font-semibold">Total Duration</div>
+        </div>
+        <div class="metric-box bg-slate-50 border-none">
+          <div class="metric-title">Total Target Reach</div>
+          <div class="metric-value text-slate-800">15,000</div>
+          <div class="text-xs text-slate-500 mt-1 font-semibold">Participants across 6 districts</div>
+        </div>
+      </div>
+
+      <div class="text-sm text-slate-700 leading-relaxed border-t border-slate-100 pt-4">
+        <p>A UNCDF-backed initiative training migrant families in digital financial literacy (DFL) and banking products (DFS). Drives financial inclusion, secures remittance channels, and directly increases the adoption of City Bank's remittance loan and other core financial products.</p>
+        <div class="mt-3 flex items-center gap-2 font-medium">
+          <span class="text-slate-500"><i class="fas fa-map-marker-alt"></i> Coverage:</span> 
+          <span class="text-slate-900">Chattogram, Feni, Cumilla, Narsingdi, Tangail, Munshiganj</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================================
+       1. SHAFAL - MILESTONE III (ONGOING)
+       ============================================== -->
+  <section class="card border-t-4 border-t-amber-500">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-100 gap-4">
+      <div class="section-title text-amber-600 mb-0 border-0 pb-0">
+        <i class="fas fa-spinner fa-spin-pulse"></i> Shafal Project · Milestone III (Ongoing)
+      </div>
+      <div class="status-badge bg-amber-100 text-amber-700"><i class="fas fa-circle-play"></i> Milestone III Started</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- DFL Updates -->
+      <div class="bg-white border border-sky-200 rounded-xl p-5 shadow-sm border-l-4 border-l-sky-500 relative">
+        <div class="absolute top-4 right-4 bg-sky-50 text-sky-700 text-xs font-bold px-2 py-1 rounded border border-sky-100">Target: 5,000</div>
+        <h4 class="text-sm font-bold text-sky-900 mb-4 uppercase flex items-center gap-2"><i class="fas fa-book-open"></i> DFL Sessions Update</h4>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-slate-50 rounded-lg p-3 text-center border border-slate-100">
+            <div class="text-xs text-slate-500 font-bold uppercase mb-1">Planned Sessions</div>
+            <div class="text-2xl font-bold text-slate-800">50</div>
+          </div>
+          <div class="bg-sky-50 rounded-lg p-3 text-center border border-sky-100">
+            <div class="text-xs text-sky-600 font-bold uppercase mb-1">Completed</div>
+            <div class="text-2xl font-bold text-sky-700">7</div>
+            <div class="text-xs font-semibold text-sky-800 mt-1">500+ participants</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DFS Updates -->
+      <div class="bg-white border border-indigo-200 rounded-xl p-5 shadow-sm border-l-4 border-l-indigo-500 relative">
+        <div class="absolute top-4 right-4 bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-1 rounded border border-indigo-100">Target: 5,000</div>
+        <h4 class="text-sm font-bold text-indigo-900 mb-4 uppercase flex items-center gap-2"><i class="fas fa-wallet"></i> DFS Sessions Update</h4>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-slate-50 rounded-lg p-3 text-center border border-slate-100">
+            <div class="text-xs text-slate-500 font-bold uppercase mb-1">Planned Sessions</div>
+            <div class="text-2xl font-bold text-slate-800">45</div>
+          </div>
+          <div class="bg-indigo-50 rounded-lg p-3 text-center border border-indigo-100">
+            <div class="text-xs text-indigo-600 font-bold uppercase mb-1">Completed</div>
+            <div class="text-2xl font-bold text-indigo-700">7</div>
+            <div class="text-xs font-semibold text-indigo-800 mt-1">550+ participants</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================================
+       2. SHAFAL - MILESTONE II (ACHIEVED)
+       ============================================== -->
+  <section class="mb-8">
+    <div class="flex items-center gap-3 mb-4">
+      <h2 class="text-xl font-bold text-slate-800">Shafal · Milestone II Major Achievements</h2>
+      <div class="h-px bg-slate-300 flex-1"></div>
+      <span class="status-badge bg-green-100 text-green-700"><i class="fas fa-check-circle"></i> Completed</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- DFL Card -->
+      <div class="card p-0 overflow-hidden border-t-4 border-t-sky-500 m-0">
+        <div class="bg-sky-50 p-5 border-b border-sky-100 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-sky-500 text-white rounded-lg flex items-center justify-center text-lg"><i class="fas fa-book-open"></i></div>
+            <div>
+              <h3 class="font-bold text-lg text-slate-900">DFL (Digital Financial Literacy)</h3>
+            </div>
+          </div>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-2 gap-3 mb-6 text-center">
+            <div class="bg-slate-50 rounded p-2"><div class="text-xs text-slate-500 font-bold uppercase">Target</div><div class="font-bold text-lg">5,000</div></div>
+            <div class="bg-sky-50 text-sky-700 rounded p-2"><div class="text-xs font-bold uppercase">Reached</div><div class="font-bold text-lg">5,198</div></div>
+            <div class="bg-pink-50 text-pink-700 rounded p-2"><div class="text-xs font-bold uppercase">Female</div><div class="font-bold text-lg">3,289 <span class="text-xs">(63%)</span></div></div>
+            <div class="bg-slate-100 text-slate-800 rounded p-2"><div class="text-xs font-bold uppercase">Completed Sessions</div><div class="font-bold text-lg">60</div></div>
+          </div>
+          <h4 class="text-xs font-bold uppercase text-slate-500 mb-2 border-b pb-1">Key Indicators</h4>
+          <div class="data-row">
+            <span class="text-slate-600">1.1 DFL Solution Developed</span>
+            <span class="font-bold">1 <span class="text-green-600 text-xs ml-1"><i class="fas fa-check"></i></span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.2 Improved understanding</span>
+            <span class="font-bold">5,199 <span class="text-pink-600 font-normal text-xs">(63% F)</span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.3 Using digital services</span>
+            <span class="font-bold">1,250 <span class="text-pink-600 font-normal text-xs">(80% F)</span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.4 Improved management</span>
+            <span class="font-bold">506 <span class="text-pink-600 font-normal text-xs">(61% F)</span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.5 Informal to formal transition</span>
+            <span class="font-bold">200 <span class="text-pink-600 font-normal text-xs">(68% F)</span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.6 Women decision-making</span>
+            <span class="font-bold text-green-600">+67%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DFS Card -->
+      <div class="card p-0 overflow-hidden border-t-4 border-t-indigo-500 m-0">
+        <div class="bg-indigo-50 p-5 border-b border-indigo-100 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-500 text-white rounded-lg flex items-center justify-center text-lg"><i class="fas fa-wallet"></i></div>
+            <div>
+              <h3 class="font-bold text-lg text-slate-900">DFS (Digital Financial Services)</h3>
+            </div>
+          </div>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-2 gap-3 mb-6 text-center">
+            <div class="bg-slate-50 rounded p-2"><div class="text-xs text-slate-500 font-bold uppercase">Target</div><div class="font-bold text-lg">5,000</div></div>
+            <div class="bg-indigo-50 text-indigo-700 rounded p-2"><div class="text-xs font-bold uppercase">Reached</div><div class="font-bold text-lg">5,193</div></div>
+            <div class="bg-pink-50 text-pink-700 rounded p-2"><div class="text-xs font-bold uppercase">Female</div><div class="font-bold text-lg">3,327 <span class="text-xs">(64%)</span></div></div>
+            <div class="bg-slate-100 text-slate-800 rounded p-2"><div class="text-xs font-bold uppercase">Completed Sessions</div><div class="font-bold text-lg">55</div></div>
+          </div>
+          <h4 class="text-xs font-bold uppercase text-slate-500 mb-2 border-b pb-1">Key Indicators</h4>
+          <div class="data-row">
+            <span class="text-slate-600">1.1 DFS Solution Developed</span>
+            <span class="font-bold">1 <span class="text-green-600 text-xs ml-1"><i class="fas fa-check"></i></span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.2 Access to formal solutions</span>
+            <span class="font-bold">5,193 <span class="text-pink-600 font-normal text-xs">(64% F)</span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.3 Using promoted products</span>
+            <span class="font-bold">1,500 <span class="text-pink-600 font-normal text-xs">(67% F)</span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.4 Improved management</span>
+            <span class="font-bold">200 <span class="text-pink-600 font-normal text-xs">(65% F)</span></span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.5 Women decision-making</span>
+            <span class="font-bold">200</span>
+          </div>
+          <div class="data-row">
+            <span class="text-slate-600">1.6 Volume Mobilized</span>
+            <span class="font-bold text-green-600">$818,400</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==============================================
+       3. SHAFAL - MILESTONE I (PREPARATION)
+       ============================================== -->
+  <section class="card border-l-4 border-l-slate-400">
+    <div class="section-title text-slate-700">
+      <i class="fas fa-flag-checkered"></i> Shafal · Milestone I Updates
+    </div>
+    <p class="text-sm text-slate-600 mb-5">This foundational phase successfully established the groundwork for both DFL and DFS interventions prior to implementation.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="flex gap-3">
+        <div class="text-sky-500 mt-1"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+          <h4 class="font-bold text-sm">Workplan Preparation</h4>
+          <p class="text-xs text-slate-500 mt-1">Strategic mapping and scheduling of DFL and DFS rollout activities.</p>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-sky-500 mt-1"><i class="fas fa-laptop-code"></i></div>
+        <div>
+          <h4 class="font-bold text-sm">Product Design</h4>
+          <p class="text-xs text-slate-500 mt-1">Development of DFL learning platforms and tailored DFS remittance products.</p>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-sky-500 mt-1"><i class="fas fa-palette"></i></div>
+        <div>
+          <h4 class="font-bold text-sm">Branding Materials</h4>
+          <p class="text-xs text-slate-500 mt-1">Creation of cohesive brand identity for community outreach.</p>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-sky-500 mt-1"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div>
+          <h4 class="font-bold text-sm">Literacy & Content</h4>
+          <p class="text-xs text-slate-500 mt-1">Design of contextualized training modules and promotional onboarding content.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================================
+       4. A2GF - ACCESS TO GREEN FINANCE
+       ============================================== -->
+  <section class="card border-t-4 border-t-emerald-500 bg-emerald-50/30">
+    <div class="flex justify-between items-center mb-6 border-b border-emerald-100 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-500 text-white rounded-lg flex items-center justify-center text-lg"><i class="fas fa-leaf"></i></div>
+        <div>
+          <h2 class="text-xl font-bold text-emerald-900">A2GF · Access to Green Climate Finance</h2>
+          <p class="text-sm text-emerald-700 font-medium">Upcoming Project Initiative</p>
+        </div>
+      </div>
+      <div class="text-right hidden md:block">
+        <div class="status-badge bg-emerald-100 text-emerald-800"><i class="fas fa-check"></i> Due Diligence Completed</div>
+        <div class="text-xs font-bold text-amber-600 mt-2"><i class="fas fa-search"></i> Risk Team Reviewing Facility</div>
+      </div>
+    </div>
+
+    <!-- Mobile status -->
+    <div class="md:hidden mb-6 bg-white p-3 rounded border border-emerald-100">
+      <div class="text-sm font-bold text-emerald-700"><i class="fas fa-check"></i> Due Diligence Completed</div>
+      <div class="text-xs font-bold text-amber-600 mt-1"><i class="fas fa-search"></i> Risk Team Reviewing Facility</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="md:col-span-2">
+        <h4 class="text-sm font-bold text-slate-800 uppercase mb-2">Project Brief</h4>
+        <p class="text-sm text-slate-700 leading-relaxed bg-white p-4 rounded border border-emerald-100 shadow-sm">
+          In partnership with UNCDF, City Bank will deploy a concessional fund over 24 months to provide accessible green finance to small businesses at 10% rates. This strategic initiative expands our sustainable portfolio aligned with the Bangladesh Bank Green Taxonomy.
+        </p>
+      </div>
+      <div>
+        <h4 class="text-sm font-bold text-slate-800 uppercase mb-2">Target Customer</h4>
+        <div class="bg-white p-4 rounded border border-emerald-100 shadow-sm h-full flex flex-col justify-center">
+          <div class="font-bold text-emerald-700"><i class="fas fa-industry"></i> Green Finance</div>
+          <p class="text-xs text-slate-600 mt-1">Strictly aligned with Bangladesh Bank Green Taxonomy</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="metric-box bg-white border-emerald-100">
+        <div class="metric-title text-emerald-800">Total Fund Size</div>
+        <div class="metric-value text-emerald-900">৳16.5 Cr</div>
+        <div class="text-xs font-bold text-slate-500 mt-1">$1.35M USD</div>
+      </div>
+      <div class="metric-box bg-white border-emerald-100">
+        <div class="metric-title text-emerald-800">Borrowing Rate</div>
+        <div class="metric-value text-emerald-900">1.00%</div>
+        <div class="text-xs font-bold text-slate-500 mt-1">Concessional Rate</div>
+      </div>
+      <div class="metric-box bg-white border-emerald-100">
+        <div class="metric-title text-emerald-800">Disbursement Rate</div>
+        <div class="metric-value text-emerald-900">10.0%</div>
+        <div class="text-xs font-bold text-slate-500 mt-1">Concessional Rate</div>
+      </div>
+      <div class="metric-box bg-white border-emerald-100">
+        <div class="metric-title text-emerald-800">Timeline</div>
+        <div class="metric-value text-emerald-900">24 Months</div>
+        <div class="text-xs font-bold text-slate-500 mt-1">10-Mo Disbursement Window</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-lg p-4 border border-emerald-100 shadow-sm">
+        <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Funding Structure (1:2 Match Fund)</h4>
+        <div class="flex justify-between text-sm font-bold mb-2">
+          <span class="text-emerald-600">UNCDF: $449K</span>
+          <span class="text-blue-600">City Bank: $898K</span>
+        </div>
+        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
+          <div style="width: 33.33%" class="bg-emerald-500"></div>
+          <div style="width: 66.67%" class="bg-blue-500"></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg p-4 border border-emerald-100 shadow-sm">
+        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Agreement Vetting Status</h4>
+        <div class="flex items-start gap-3">
+          <div class="mt-1 text-emerald-500"><i class="fas fa-file-signature"></i></div>
+          <p class="text-sm text-slate-700">City Bank's legal and essential teams have reviewed the agreement copy and sent it back to UNCDF for adjustments in alignment with the bank's policy and governance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mt-12 pt-6 border-t border-slate-200 flex flex-col items-center justify-center text-[11px] text-slate-400 font-medium leading-relaxed">
+    <p>&copy; Copyright to City Bank PLC</p>
+    <p>Design and developed by Maruf Billah</p>
+  </footer>
+
+</div>
+
+<script>
+  function generatePDF(orientation = 'portrait') {
+    // We use html2pdf for high quality rendering with explicit pagebreak avoidance
+    const element = document.getElementById('dashboard-content');
+    const opt = {
+      margin:       [0.4, 0.4, 0.4, 0.4],
+      filename:     `CityBank_UNCDF_Shafal_A2GF_${orientation}.pdf`,
+      image:        { type: 'jpeg', quality: 1 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: orientation },
+      pagebreak:    { mode: 'css', avoid: ['section', '.card', '.metric-box', '.data-row'] }
+    };
+
+    // Temporarily hide the PDF buttons during capture
+    const actions = document.querySelector('.pdf-actions');
+    if(actions) actions.style.display = 'none';
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      if(actions) actions.style.display = 'flex';
+    }).catch(err => {
+      console.error(err);
+      if(actions) actions.style.display = 'flex';
+      // Fallback to window print if html2pdf fails
+      window.print();
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SME Location Map</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./style.css?v=2" />
+    <!-- Google Fonts for premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- HTML to Canvas & PDF Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Turf.js Library for precise visual center calculation -->
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+  </head>
+  <body>
+    <div id="app-container" style="width: 100vw; height: 100vh; position: relative;">
+      <!-- Full-screen Map Container -->
+      <div id="map"></div>
+      
+      <!-- Custom Zoom Control -->
+      <div class="custom-zoom-control">
+        <span>Zoom:</span>
+        <input type="number" id="zoom-level" min="4" max="18" value="7" />
+        <button id="zoom-in" class="zoom-btn">+</button>
+        <button id="zoom-out" class="zoom-btn">-</button>
+        <button id="export-pdf-btn" class="export-btn" title="Export to PDF">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+        </button>
+      </div>
+
+      <!-- Theme Toggle -->
+      <button id="theme-toggle" class="theme-toggle" title="Toggle Dark/Light Mode">
+        <svg id="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg id="theme-icon-sun" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+
+      <!-- Back to National View Button (Hidden by default) -->
+      <button id="back-to-national-btn" class="back-btn hidden">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Back to Bangladesh
+      </button>
+
+      <!-- Right Sidebar for Legend and Stats -->
+      <div class="right-sidebar">
+        <!-- Floating Legend Panel -->
+        <div class="legend-panel" id="legend-panel">
+          <div class="panel-header">
+            <h2>Legend</h2>
+            <button id="toggle-legend-btn" class="toggle-btn" title="Toggle Legend">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            </button>
+          </div>
+          <div id="legend-content">
+            <label class="legend-item interactive">
+              <input type="checkbox" class="legend-filter" value="Excellent" checked>
+              <div class="legend-color-box" style="background-color: #22c55e;"></div>
+              <div class="legend-desc"><strong>Excellent</strong><br>Productivity &ge; 60%</div>
+            </label>
+            <label class="legend-item interactive">
+              <input type="checkbox" class="legend-filter" value="Good" checked>
+              <div class="legend-color-box" style="background-color: #eab308;"></div>
+              <div class="legend-desc"><strong>Good</strong><br>Productivity 50% - 59%</div>
+            </label>
+            <label class="legend-item interactive">
+              <input type="checkbox" class="legend-filter" value="Poor" checked>
+              <div class="legend-color-box" style="background-color: #ef4444;"></div>
+              <div class="legend-desc"><strong>Poor</strong><br>Productivity &lt; 50%</div>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Stats Panel -->
+        <div class="stats-panel" id="stats-container" style="display: none;">
+          <div class="panel-header" style="border-bottom: 1px solid var(--panel-border); padding-bottom: 6px; margin-bottom: 2px;">
+            <h2 style="font-size: 0.85rem; font-weight: 600; margin: 0;">Location Performance</h2>
+            <button id="toggle-stats-btn" class="toggle-btn" title="Toggle Location Performance">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            </button>
+          </div>
+          <div class="stats-content" id="stats-content">
+            <div class="stat-box">
+              <span class="stat-label">Total Locations</span>
+              <span class="stat-value" id="stat-locations">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Excellent</span>
+              <span class="stat-value" id="stat-excellent" style="color: #22c55e;">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Good</span>
+              <span class="stat-value" id="stat-good" style="color: #eab308;">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Poor</span>
+              <span class="stat-value" id="stat-poor" style="color: #ef4444;">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Glassmorphism Upload Panel -->
+      <div class="control-panel collapsed" id="control-panel">
+        <div class="panel-header">
+          <h1>Map Data</h1>
+          <button id="toggle-panel-btn" class="toggle-btn rotated">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+          </button>
+        </div>
+        <div id="panel-content">
+          <p>Upload an Excel or CSV file containing location data to plot it dynamically.</p>
+          
+          <div class="upload-container">
+          <label for="file-upload" class="custom-file-upload">
+            Choose File (.xlsx, .csv)
+          </label>
+          <input id="file-upload" type="file" accept=".xlsx, .xls, .csv" />
+          <span id="file-name">No file chosen</span>
+        </div>
+
+        <div class="error-msg" id="error-msg"></div>
+        </div>
+      </div>
+
+      <!-- Details Modal -->
+      <div class="modal-overlay" id="details-modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="details-modal-title">Loan Details</h2>
+            <button class="close-modal-btn" onclick="closeDetailsModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="table-container">
+              <table class="details-table">
+                <thead>
+                  <tr>
+                    <th>Cust_ID</th>
+                    <th>A/C</th>
+                    <th>Disb_Amt</th>
+                    <th>Disb_Date</th>
+                    <th>Balance</th>
+                    <th>Employee ID</th>
+                    <th>Business Area</th>
+                    <th>Territory</th>
+                    <th>Region</th>
+                    <th>Zone</th>
+                  </tr>
+                </thead>
+                <tbody id="details-table-body">
+                  <!-- Rows injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Application Script -->
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

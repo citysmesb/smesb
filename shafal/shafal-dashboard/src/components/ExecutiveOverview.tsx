@@ -237,7 +237,7 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
     };
 
     return (
-        <div className="flex flex-col h-full space-y-4 max-w-7xl mx-auto relative">
+        <div className="flex flex-col h-full min-h-[600px] space-y-4 max-w-7xl mx-auto relative">
             
             {/* Dark backdrop when a chart is focused */}
             {focusedChart && (
@@ -361,7 +361,7 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                             <XAxis type="number" hide />
-                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: focusedChart === 'dfl-district' ? 14 : 11, fontWeight: 700}} width={focusedChart === 'dfl-district' ? 120 : 85} />
+                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: focusedChart?.includes('district') ? 14 : 11, fontWeight: 700}} width={focusedChart?.includes('district') ? 120 : 95} />
                             <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
                             <Bar dataKey="dfl" name="DFL Reached" radius={[0, 4, 4, 0]} barSize={focusedChart === 'dfl-district' ? 32 : 14} onClick={(data) => setSelectedDistrict(selectedDistrict === data.name ? null : (data.name || null))}>
                                 {districtData.map((entry: any, index: number) => (
@@ -391,7 +391,7 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                             <XAxis type="number" hide />
-                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: focusedChart === 'dfs-district' ? 14 : 11, fontWeight: 700}} width={focusedChart === 'dfs-district' ? 120 : 85} />
+                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: focusedChart === 'dfs-district' ? 14 : 11, fontWeight: 700}} width={focusedChart === 'dfs-district' ? 120 : 95} />
                             <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
                             <Bar dataKey="dfs" name="DFS Reached" radius={[0, 4, 4, 0]} barSize={focusedChart === 'dfs-district' ? 32 : 14} onClick={(data) => setSelectedDistrict(selectedDistrict === data.name ? null : (data.name || null))}>
                                 {districtData.map((entry: any, index: number) => (
@@ -411,7 +411,7 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
                     isFocused={focusedChart === 'dfl-gender'}
                     onFocus={() => toggleFocus('dfl-gender')}
                 >
-                    <div className="flex-1 w-full h-full flex flex-row items-center justify-center gap-12 px-4">
+                    <div className="flex-1 w-full h-full flex flex-row items-center justify-center gap-4 md:gap-8 px-4">
                         <div className={`relative flex-shrink-0 ${focusedChart === 'dfl-gender' ? 'w-64 h-64' : 'w-28 h-28'}`}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -465,7 +465,7 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
                     isFocused={focusedChart === 'dfs-gender'}
                     onFocus={() => toggleFocus('dfs-gender')}
                 >
-                    <div className="flex-1 w-full h-full flex flex-row items-center justify-center gap-12 px-4">
+                    <div className="flex-1 w-full h-full flex flex-row items-center justify-center gap-4 md:gap-8 px-4">
                         <div className={`relative flex-shrink-0 ${focusedChart === 'dfs-gender' ? 'w-64 h-64' : 'w-28 h-28'}`}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>

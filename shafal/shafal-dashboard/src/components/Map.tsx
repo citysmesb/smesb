@@ -18,8 +18,7 @@ export default function BangladeshMap({ districtStats, globalStats, milestoneFil
         if (cachedGeoData) {
             return; // Already loaded
         }
-        
-        fetch('/smesb/shafal/data/bd-districts.json')
+        fetch('/smesb/shafal/data/bd-districts-opt.json')
             .then(res => res.json())
             .then(data => {
                 cachedGeoData = data;

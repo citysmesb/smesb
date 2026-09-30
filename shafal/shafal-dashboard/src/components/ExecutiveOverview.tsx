@@ -99,7 +99,7 @@ const ChartWrapper = ({ title, iconColor, children, onFocus, isFocused, id }: an
                 </div>
             </div>
             
-            <div className={`flex-1 w-full relative ${isFocused ? 'min-h-[400px]' : 'min-h-[160px]'}`}>
+            <div className={`flex-1 w-full relative min-h-0 ${isFocused ? 'min-h-[400px]' : ''}`}>
                 {children}
             </div>
         </div>
@@ -244,20 +244,17 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90]" onClick={() => setFocusedChart(null)}></div>
             )}
 
-            {/* Header (Minimal) */}
-            <div className="flex justify-between items-end">
-                <div className="flex items-center space-x-4">
-                    <h2 className="text-xl font-black text-slate-800 tracking-tight leading-none">Executive Dashboard</h2>
-                    {(selectedDistrict || selectedGender) && (
-                        <button 
-                            onClick={() => { setSelectedDistrict(null); setSelectedGender(null); }}
-                            className="px-3 py-1 bg-red-100 text-red-600 text-xs font-bold rounded-full hover:bg-red-200 transition-colors shadow-sm"
-                        >
-                            Clear Filters
-                        </button>
-                    )}
+            {/* Active Filters (Minimal) */}
+            {(selectedDistrict || selectedGender) && (
+                <div className="flex justify-end">
+                    <button 
+                        onClick={() => { setSelectedDistrict(null); setSelectedGender(null); }}
+                        className="px-3 py-1 bg-red-100 text-red-600 text-xs font-bold rounded-full hover:bg-red-200 transition-colors shadow-sm"
+                    >
+                        Clear Filters
+                    </button>
                 </div>
-            </div>
+            )}
 
             {/* Smart Colorful KPI Cards (Minimal Space) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -344,7 +341,7 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
             </div>
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 pb-10">
+            <div className={`grid grid-cols-1 md:grid-cols-2 md:grid-rows-[3fr_2fr] gap-4 flex-1 min-h-0 ${focusedChart ? 'pb-10' : ''}`}>
                 
                 {/* District Reach DFL */}
                 <ChartWrapper 
@@ -415,15 +412,15 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
                     onFocus={() => toggleFocus('dfl-gender')}
                 >
                     <div className="flex-1 w-full h-full flex flex-row items-center justify-center gap-12 px-4">
-                        <div className={`relative flex-shrink-0 ${focusedChart === 'dfl-gender' ? 'w-64 h-64' : 'w-36 h-36'}`}>
+                        <div className={`relative flex-shrink-0 ${focusedChart === 'dfl-gender' ? 'w-64 h-64' : 'w-28 h-28'}`}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
                                         data={dflGenderData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={focusedChart === 'dfl-gender' ? 80 : 48}
-                                        outerRadius={focusedChart === 'dfl-gender' ? 110 : 68}
+                                        innerRadius={focusedChart?.includes('gender') ? 80 : 36}
+                                        outerRadius={focusedChart?.includes('gender') ? 110 : 56}
                                         paddingAngle={6}
                                         dataKey="value"
                                         stroke="none"
@@ -469,15 +466,15 @@ export default function ExecutiveOverview({ globalStats: initialGlobalStats, dis
                     onFocus={() => toggleFocus('dfs-gender')}
                 >
                     <div className="flex-1 w-full h-full flex flex-row items-center justify-center gap-12 px-4">
-                        <div className={`relative flex-shrink-0 ${focusedChart === 'dfs-gender' ? 'w-64 h-64' : 'w-36 h-36'}`}>
+                        <div className={`relative flex-shrink-0 ${focusedChart === 'dfs-gender' ? 'w-64 h-64' : 'w-28 h-28'}`}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
                                         data={dfsGenderData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={focusedChart === 'dfs-gender' ? 80 : 48}
-                                        outerRadius={focusedChart === 'dfs-gender' ? 110 : 68}
+                                        innerRadius={focusedChart === 'dfs-gender' ? 80 : 36}
+                                        outerRadius={focusedChart === 'dfs-gender' ? 110 : 56}
                                         paddingAngle={6}
                                         dataKey="value"
                                         stroke="none"

@@ -43,12 +43,21 @@ export default function DashboardLayout({
   
   const [milestoneFilter, setMilestoneFilter] = useState("All");
   
-  // Data load for Beneficiaries Tab
-    const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [userRole, setUserRole] = useState("");
   useEffect(() => { 
-    if (!localStorage.getItem("shafal_logged_in")) { 
+    const loggedIn = localStorage.getItem("shafal_logged_in");
+    if (!loggedIn) { 
       window.location.href = "/smesb/shafal/login"; 
     } else {
+      if (loggedIn === "guest") {
+          const path = window.location.pathname.replace('/smesb/shafal', '') || '/';
+          if (path !== '/' && path !== '/geographic-map' && !path.startsWith('/case-stories')) {
+              window.location.href = "/smesb/shafal/";
+              return;
+          }
+      }
+      setUserRole(loggedIn);
       setIsAuthChecking(false);
     }
   }, []);
@@ -117,12 +126,16 @@ export default function DashboardLayout({
     { id: "users", label: "User Management", icon: Users, href: "/users", permId: "users", group: "ADMINISTRATION" }
   ];
 
-  const navItems = permissions 
+  let navItems = permissions 
     ? allNavItems.filter(item => permissions.includes(item.permId) || item.permId === 'case-stories' || item.permId === 'archive' || item.permId === 'uncdf' || item.permId === 'remittance')
     : allNavItems; // fallback if permissions not provided
 
   if (role === 'Admin' && !navItems.find(i => i.id === 'users')) {
       navItems.push({ id: "users", label: "User Management", icon: Users, href: "/users", permId: "users", group: "ADMINISTRATION" });
+  }
+
+  if (userRole === "guest") {
+      navItems = allNavItems.filter(item => ["dashboard", "geographic-map", "case-stories"].includes(item.permId));
   }
 
   if (isAuthChecking) {
@@ -294,14 +307,16 @@ export default function DashboardLayout({
         
         {/* Global Milestone Header */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
-           <div></div>
+           <div className="font-bold text-slate-800 text-lg">
+             {navItems.find(i => i.id === activeTab)?.label || 'Dashboard'}
+           </div>
            <div className="flex items-center space-x-3">
               <span className="text-sm text-slate-500 font-medium">Active Phase:</span>
               <div className="flex bg-slate-100 p-1 rounded-lg">{["All", "Milestone I", "Milestone II", "Milestone III"].map((m) => (<button key={m} onClick={() => setMilestoneFilter(m)} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${milestoneFilter === m ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>{m === "All" ? "All" : m.replace("Milestone ", "")}</button>))}</div>
            </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-8">
+        <div className="flex-1 overflow-hidden p-2 sm:p-4 lg:p-6">
             
             {children ? children : (
               <>
